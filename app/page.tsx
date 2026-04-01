@@ -18,9 +18,7 @@ export default function Home() {
     remainingTime,
     reset,
     setLevelDuration,
-    setSoundVolume,
     soundEnabled,
-    soundVolume,
     start,
     totalLevels,
     toggleSound,
@@ -69,12 +67,10 @@ export default function Home() {
           onPrevious={goToPreviousLevel}
           onReset={reset}
           onSetLevelDuration={setLevelDuration}
-          onSetSoundVolume={setSoundVolume}
           onStart={start}
           onToggleSound={toggleSound}
           remainingTime={remainingTime}
           soundEnabled={soundEnabled}
-          soundVolume={soundVolume}
           totalLevels={totalLevels}
         />
       </div>
