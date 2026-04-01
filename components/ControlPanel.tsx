@@ -16,6 +16,7 @@ type ControlPanelProps = {
   levelDurationMinutes: number;
   remainingTime: number;
   soundEnabled: boolean;
+  soundVolume: number;
   totalLevels: number;
   onJump: (levelNumber: number, remainingSeconds: number) => void;
   onNext: () => void;
@@ -23,6 +24,7 @@ type ControlPanelProps = {
   onPrevious: () => void;
   onReset: () => void;
   onSetLevelDuration: (minutes: number) => void;
+  onSetSoundVolume: (volumePercent: number) => void;
   onStart: () => void;
   onToggleSound: () => void;
 };
@@ -80,7 +82,7 @@ function JumpInput({
 }) {
   return (
     <label className="flex min-w-[4.75rem] flex-col gap-1.5 sm:min-w-[5.25rem]">
-      <span className="text-[10px] font-semibold tracking-[0.25em] text-white/45 uppercase">
+      <span className="text-[10px] font-semibold tracking-[0.14em] text-white/45 uppercase">
         {label}
       </span>
       <input
@@ -106,6 +108,7 @@ export default function ControlPanel({
   levelDurationMinutes,
   remainingTime,
   soundEnabled,
+  soundVolume,
   totalLevels,
   onJump,
   onNext,
@@ -113,6 +116,7 @@ export default function ControlPanel({
   onPrevious,
   onReset,
   onSetLevelDuration,
+  onSetSoundVolume,
   onStart,
   onToggleSound,
 }: ControlPanelProps) {
@@ -120,6 +124,7 @@ export default function ControlPanel({
   const [durationValue, setDurationValue] = useState(
     levelDurationMinutes.toString()
   );
+  const [volumeValue, setVolumeValue] = useState(soundVolume.toString());
   const [minuteValue, setMinuteValue] = useState(
     splitRemainingTime(remainingTime).minutes
   );
@@ -132,9 +137,10 @@ export default function ControlPanel({
 
     setLevelValue(currentLevelNumber.toString());
     setDurationValue(levelDurationMinutes.toString());
+    setVolumeValue(soundVolume.toString());
     setMinuteValue(nextTime.minutes);
     setSecondValue(nextTime.seconds);
-  }, [animationKey, currentLevelNumber, levelDurationMinutes]);
+  }, [animationKey, currentLevelNumber, levelDurationMinutes, soundVolume]);
 
   const applyJump = () => {
     const parsedLevel = Number(levelValue || "1");
@@ -147,6 +153,10 @@ export default function ControlPanel({
 
   const applyDuration = () => {
     onSetLevelDuration(Number(durationValue || "8"));
+  };
+
+  const applyVolume = () => {
+    onSetSoundVolume(Number(volumeValue || "140"));
   };
 
   return (
@@ -198,7 +208,7 @@ export default function ControlPanel({
 
         <div className="flex flex-col gap-2.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-3 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-amber-200/65 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
               Jump Control
             </p>
             <p className="text-xs text-white/55 sm:text-sm">
@@ -237,7 +247,7 @@ export default function ControlPanel({
 
         <div className="flex flex-col gap-2.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-3 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-amber-200/65 uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
               Level Duration
             </p>
             <p className="text-xs text-white/55 sm:text-sm">
@@ -258,6 +268,34 @@ export default function ControlPanel({
               type="button"
             >
               듀레이션 적용
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-3 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
+              Alarm Volume
+            </p>
+            <p className="text-xs text-white/55 sm:text-sm">
+              현재 알림 볼륨은 {soundVolume}% 입니다. 더 크게 올릴 수 있습니다.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-center gap-2.5 xl:justify-end">
+            <JumpInput
+              label="Percent"
+              min={0}
+              max={250}
+              onChange={setVolumeValue}
+              value={volumeValue}
+            />
+            <button
+              className="btn-press-in inline-flex min-w-28 items-center justify-center rounded-full border border-sky-300/40 bg-sky-300/12 px-4 py-2.5 text-xs font-semibold text-sky-100 transition hover:-translate-y-0.5 hover:bg-sky-300/18 sm:min-w-[8rem] sm:text-sm"
+              onClick={applyVolume}
+              type="button"
+            >
+              볼륨 적용
             </button>
           </div>
         </div>

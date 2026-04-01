@@ -14,12 +14,13 @@ export default function Home() {
     isRunning,
     jumpTo,
     levelDurationMinutes,
-    nextLevels,
     pause,
     remainingTime,
     reset,
     setLevelDuration,
+    setSoundVolume,
     soundEnabled,
+    soundVolume,
     start,
     totalLevels,
     toggleSound,
@@ -36,12 +37,12 @@ export default function Home() {
       <div className="relative mx-auto flex h-full max-w-7xl flex-col gap-4">
         <div className="flex-1 space-y-4 overflow-hidden">
           <header className="text-center">
-            <p className="text-6xl font-semibold tracking-[0.2em] text-amber-200/65 uppercase sm:text-3xl">
+            <p className="text-xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-3xl">
               엘리오 홀덤 타이머
             </p>
           </header>
 
-          <div className="grid h-[calc(100%-1.75rem)] items-center gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid h-[calc(100%-1.75rem)] items-start gap-4 lg:grid-cols-[0.9fr_1.1fr]">
             <TimerDisplay
               animationKey={animationKey}
               formattedTime={formattedTime}
@@ -53,7 +54,6 @@ export default function Home() {
               animationKey={animationKey}
               currentLevel={currentLevel}
               levelDurationMinutes={levelDurationMinutes}
-              nextLevel={nextLevels[0]}
             />
           </div>
         </div>
@@ -69,10 +69,12 @@ export default function Home() {
           onPrevious={goToPreviousLevel}
           onReset={reset}
           onSetLevelDuration={setLevelDuration}
+          onSetSoundVolume={setSoundVolume}
           onStart={start}
           onToggleSound={toggleSound}
           remainingTime={remainingTime}
           soundEnabled={soundEnabled}
+          soundVolume={soundVolume}
           totalLevels={totalLevels}
         />
       </div>

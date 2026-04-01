@@ -13,6 +13,7 @@ type TimerState = {
   endTime: number | null;
   levelDurationSeconds: number;
   soundEnabled: boolean;
+  soundVolume: number;
   animationKey: number;
   isHydrated: boolean;
 };
@@ -46,6 +47,7 @@ const createInitialState = (): TimerState => ({
   endTime: null,
   levelDurationSeconds: 480,
   soundEnabled: true,
+  soundVolume: 140,
   animationKey: 0,
   isHydrated: true,
 });
@@ -134,10 +136,11 @@ export const useBlindTimer = () => {
     const now = audioContext.currentTime;
     const masterGain = audioContext.createGain();
     const compressor = audioContext.createDynamicsCompressor();
+    const volumeFactor = Math.min(Math.max(state.soundVolume / 100, 0), 2.5);
 
     masterGain.gain.setValueAtTime(0.0001, now);
-    masterGain.gain.linearRampToValueAtTime(0.34, now + 0.01);
-    masterGain.gain.exponentialRampToValueAtTime(0.2, now + 0.2);
+    masterGain.gain.linearRampToValueAtTime(0.34 * volumeFactor, now + 0.01);
+    masterGain.gain.exponentialRampToValueAtTime(0.2 * volumeFactor, now + 0.2);
     masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.7);
 
     compressor.threshold.setValueAtTime(-18, now);
@@ -390,6 +393,17 @@ export const useBlindTimer = () => {
     });
   });
 
+  const setSoundVolume = useEffectEvent((volumePercent: number) => {
+    const safeVolume = Number.isFinite(volumePercent)
+      ? Math.min(Math.max(Math.floor(volumePercent), 0), 250)
+      : 140;
+
+    setState((previousState) => ({
+      ...previousState,
+      soundVolume: safeVolume,
+    }));
+  });
+
   const start = useEffectEvent(async () => {
     await prepareAudio().catch(() => undefined);
 
@@ -434,6 +448,7 @@ export const useBlindTimer = () => {
     setState((previousState) => ({
       ...createInitialState(),
       soundEnabled: previousState.soundEnabled,
+      soundVolume: previousState.soundVolume,
       animationKey: previousState.animationKey + 1,
     }));
   });
@@ -467,6 +482,7 @@ export const useBlindTimer = () => {
     nextLevels,
     remainingTime: state.remainingTime,
     soundEnabled: state.soundEnabled,
+    soundVolume: state.soundVolume,
     animationKey: state.animationKey,
     totalLevels: blindLevels.length,
     goToNextLevel: () => moveToLevel(state.currentLevelIndex + 1),
@@ -475,6 +491,7 @@ export const useBlindTimer = () => {
     pause,
     reset,
     setLevelDuration,
+    setSoundVolume,
     start,
     toggleSound,
   };
