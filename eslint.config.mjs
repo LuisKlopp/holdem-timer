@@ -16,7 +16,13 @@ const config = [
   ...compat.extends("plugin:@typescript-eslint/recommended"),
   ...compat.extends("prettier"),
   {
-    ignores: ["tailwind.config.js", "postcss.config.js", "next.config.js"],
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "tailwind.config.js",
+      "postcss.config.js",
+      "next.config.js",
+    ],
   },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],

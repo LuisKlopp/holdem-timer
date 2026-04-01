@@ -1,1 +1,1 @@
-export {};
+export { useBlindTimer } from "./useBlindTimer";

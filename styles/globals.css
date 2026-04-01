@@ -4,14 +4,12 @@
 html,
 body,
 :root {
-  /* overflow-x: hidden; */
   line-height: normal;
   -ms-overflow-style: none;
   scroll-behavior: auto;
   margin: 0;
   padding: 0;
   height: 100%;
-  /* overflow-y: hidden; */
 }
 
 .text-shadow-04 {
@@ -119,6 +117,10 @@ body,
   }
   body {
     @apply bg-background text-foreground;
+    background:
+      radial-gradient(circle at top, rgba(245, 158, 11, 0.12), transparent 32%),
+      radial-gradient(circle at 20% 80%, rgba(239, 68, 68, 0.1), transparent 24%),
+      linear-gradient(180deg, #050816 0%, #070b1a 100%);
   }
   .font-outline-2 {
     -webkit-text-stroke: 1px #475569;
@@ -129,6 +131,13 @@ body,
 }
 
 @layer utilities {
+  .bg-white\/6 {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .bg-white\/8 {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .btn-press-in {
@@ -149,4 +158,21 @@ body,
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+@keyframes level-flash {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.985);
+    filter: brightness(1.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.animate-level-flash {
+  animation: level-flash 0.45s ease-out;
 }
