@@ -12,6 +12,8 @@ type TimerState = {
   remainingTime: number;
   isRunning: boolean;
   endTime: number | null;
+  runStartedAt: number | null;
+  elapsedBeforeRun: number;
   levelDurationSeconds: number;
   soundEnabled: boolean;
   animationKey: number;
@@ -40,11 +42,24 @@ const formatTime = (timeMs: number) => {
     .padStart(2, "0")}`;
 };
 
+const formatElapsedTime = (timeMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(timeMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+};
+
 const createInitialState = (): TimerState => ({
   currentLevelIndex: 0,
   remainingTime: getLevelDurationMs(0, 480),
   isRunning: false,
   endTime: null,
+  runStartedAt: null,
+  elapsedBeforeRun: 0,
   levelDurationSeconds: 480,
   soundEnabled: true,
   animationKey: 0,
@@ -246,6 +261,17 @@ export const useBlindTimer = () => {
         return {
           ...previousState,
           ...resolvedState,
+          runStartedAt:
+            previousState.isRunning && !resolvedState.isRunning
+              ? null
+              : previousState.runStartedAt,
+          elapsedBeforeRun:
+            previousState.isRunning &&
+            !resolvedState.isRunning &&
+            previousState.runStartedAt !== null
+              ? previousState.elapsedBeforeRun +
+                (now - previousState.runStartedAt)
+              : previousState.elapsedBeforeRun,
           animationKey: nextAnimationKey,
         };
       });
@@ -418,6 +444,7 @@ export const useBlindTimer = () => {
         remainingTime: nextRemainingTime,
         isRunning: true,
         endTime: Date.now() + nextRemainingTime,
+        runStartedAt: Date.now(),
       };
     });
   });
@@ -433,6 +460,12 @@ export const useBlindTimer = () => {
         remainingTime: Math.max(0, previousState.endTime - Date.now()),
         isRunning: false,
         endTime: null,
+        runStartedAt: null,
+        elapsedBeforeRun:
+          previousState.runStartedAt === null
+            ? previousState.elapsedBeforeRun
+            : previousState.elapsedBeforeRun +
+              (Date.now() - previousState.runStartedAt),
       };
     });
   });
@@ -459,6 +492,11 @@ export const useBlindTimer = () => {
     state.currentLevelIndex + 1,
     state.currentLevelIndex + 3,
   );
+  const totalElapsedMs =
+    state.elapsedBeforeRun +
+    (state.isRunning && state.runStartedAt !== null
+      ? Date.now() - state.runStartedAt
+      : 0);
 
   return {
     blindLevels,
@@ -473,6 +511,7 @@ export const useBlindTimer = () => {
     levelDurationSeconds: state.levelDurationSeconds,
     nextLevels,
     remainingTime: state.remainingTime,
+    totalElapsedTime: formatElapsedTime(totalElapsedMs),
     soundEnabled: state.soundEnabled,
     animationKey: state.animationKey,
     totalLevels: blindLevels.length,

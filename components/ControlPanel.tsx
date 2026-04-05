@@ -51,7 +51,7 @@ function ControlButton({
 }: ButtonProps) {
   return (
     <button
-      className={`btn-press-in inline-flex min-w-[6rem] items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-xs font-semibold transition hover:-translate-y-0.5 sm:min-w-[6.5rem] sm:text-sm ${
+      className={`btn-press-in inline-flex min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-[11px] font-semibold transition hover:-translate-y-0.5 sm:text-sm ${
         isPrimary
           ? "border-amber-300/60 bg-amber-200 text-neutral-950 shadow-[0_12px_36px_rgba(251,191,36,0.25)]"
           : "border-white/12 bg-white/8 text-white/90 hover:bg-white/12"
@@ -79,7 +79,7 @@ function JumpInput({
   value: string;
 }) {
   return (
-    <label className="flex min-w-[4.75rem] flex-col gap-1.5 sm:min-w-[5.25rem]">
+    <label className="flex min-w-[4.25rem] flex-col gap-1.5 sm:min-w-[4.75rem]">
       <span className="text-[10px] font-semibold tracking-[0.14em] text-white/45 uppercase">
         {label}
       </span>
@@ -151,8 +151,8 @@ export default function ControlPanel({
 
   return (
     <section className="w-full">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-black/35 p-3 backdrop-blur-md">
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 rounded-[1.5rem] border border-white/10 bg-black/35 p-2.5 backdrop-blur-md sm:gap-3 sm:p-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 mdl:grid-cols-5">
           <ControlButton
             icon={<SkipBack className="h-4 w-4" />}
             label="이전"
@@ -196,72 +196,73 @@ export default function ControlPanel({
           />
         </div>
 
-        <div className="flex flex-col gap-2.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-3 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
-              Jump Control
-            </p>
-            <p className="text-xs text-white/55 sm:text-sm">
-              원하는 레벨과 남은 시간을 입력해서 바로 이동합니다.
-            </p>
+        <div className="grid gap-3 mdl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]">
+          <div className="flex flex-col gap-2 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2.5">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
+                Jump Control
+              </p>
+              <p className="text-xs text-white/55 sm:text-sm">
+                원하는 레벨과 남은 시간을 입력해서 바로 이동합니다.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-end justify-center gap-2.5 mdl:justify-start">
+              <JumpInput
+                label={`Level 1-${totalLevels}`}
+                max={totalLevels}
+                min={1}
+                onChange={setLevelValue}
+                value={levelValue}
+              />
+              <JumpInput
+                label="Minutes"
+                onChange={setMinuteValue}
+                value={minuteValue}
+              />
+              <JumpInput
+                label="Seconds"
+                max={59}
+                onChange={setSecondValue}
+                value={secondValue}
+              />
+              <button
+                className="btn-press-in inline-flex min-w-24 items-center justify-center rounded-full border border-amber-300/50 bg-amber-300/12 px-4 py-2.5 text-xs font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/18 sm:min-w-[7rem] sm:text-sm"
+                onClick={applyJump}
+                type="button"
+              >
+                점프 적용
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-end justify-center gap-2.5 xl:justify-end">
-            <JumpInput
-              label={`Level 1-${totalLevels}`}
-              max={totalLevels}
-              min={1}
-              onChange={setLevelValue}
-              value={levelValue}
-            />
-            <JumpInput
-              label="Minutes"
-              onChange={setMinuteValue}
-              value={minuteValue}
-            />
-            <JumpInput
-              label="Seconds"
-              max={59}
-              onChange={setSecondValue}
-              value={secondValue}
-            />
-            <button
-              className="btn-press-in inline-flex min-w-28 items-center justify-center rounded-full border border-amber-300/50 bg-amber-300/12 px-4 py-2.5 text-xs font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/18 sm:min-w-[8rem] sm:text-sm"
-              onClick={applyJump}
-              type="button"
-            >
-              점프 적용
-            </button>
+          <div className="flex flex-col gap-2 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2.5">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
+                Level Duration
+              </p>
+              <p className="text-xs text-white/55 sm:text-sm">
+                일반 레벨 기본 시간은 현재 {levelDurationMinutes}분입니다.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-end justify-center gap-2.5 mdl:justify-start">
+              <JumpInput
+                label="Minutes"
+                min={1}
+                onChange={setDurationValue}
+                value={durationValue}
+              />
+              <button
+                className="btn-press-in inline-flex min-w-24 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/12 px-4 py-2.5 text-xs font-semibold text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-300/18 sm:min-w-[7rem] sm:text-sm"
+                onClick={applyDuration}
+                type="button"
+              >
+                듀레이션 적용
+              </button>
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-col gap-2.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-3 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
-              Level Duration
-            </p>
-            <p className="text-xs text-white/55 sm:text-sm">
-              일반 레벨 기본 시간은 현재 {levelDurationMinutes}분입니다.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-end justify-center gap-2.5 xl:justify-end">
-            <JumpInput
-              label="Minutes"
-              min={1}
-              onChange={setDurationValue}
-              value={durationValue}
-            />
-            <button
-              className="btn-press-in inline-flex min-w-28 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/12 px-4 py-2.5 text-xs font-semibold text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-300/18 sm:min-w-[8rem] sm:text-sm"
-              onClick={applyDuration}
-              type="button"
-            >
-              듀레이션 적용
-            </button>
-          </div>
-        </div>
-
       </div>
     </section>
   );
