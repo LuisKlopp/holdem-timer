@@ -20,7 +20,6 @@ export default function Home() {
     setLevelDuration,
     soundEnabled,
     start,
-    totalElapsedTime,
     totalLevels,
     toggleSound,
   } = useBlindTimer();
@@ -34,8 +33,8 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto grid h-full max-w-7xl grid-rows-[auto_minmax(0,1fr)_auto] gap-2 sm:gap-3">
-        <header className="text-center">
-          <p className="mdl:text-lg text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-2xl">
+        <header className="mt-12 text-center">
+          <p className="text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase">
             엘리오 홀덤 타이머
           </p>
         </header>
@@ -47,7 +46,6 @@ export default function Home() {
               formattedTime={formattedTime}
               isBreak={currentLevel.isBreak}
               isRunning={isRunning}
-              totalElapsedTime={totalElapsedTime}
             />
 
             <LevelInfo

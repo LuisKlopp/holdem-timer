@@ -3,7 +3,6 @@ type TimerDisplayProps = {
   formattedTime: string;
   isBreak: boolean;
   isRunning: boolean;
-  totalElapsedTime: string;
 };
 
 export default function TimerDisplay({
@@ -11,7 +10,6 @@ export default function TimerDisplay({
   formattedTime,
   isBreak,
   isRunning,
-  totalElapsedTime,
 }: TimerDisplayProps) {
   return (
     <section className="h-60 w-full">
@@ -19,10 +17,6 @@ export default function TimerDisplay({
         key={animationKey}
         className="animate-level-flash mdl:p-6 mdl:text-left relative flex h-full min-h-[9.5rem] flex-col justify-center rounded-[1.75rem] p-4 text-center sm:p-5"
       >
-        <div className="absolute top-3 right-3 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-[14px] font-semibold tracking-[0.16em] text-white/65 uppercase backdrop-blur sm:top-4 sm:right-4">
-          Total {totalElapsedTime}
-        </div>
-
         <div className="space-y-2 sm:space-y-2.5">
           <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-200/70 uppercase sm:text-xs">
             {isBreak ? "Break Time" : "Time Remaining"}

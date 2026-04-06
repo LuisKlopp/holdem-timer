@@ -152,7 +152,7 @@ export default function ControlPanel({
   return (
     <section className="w-full">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 rounded-[1.5rem] border border-white/10 bg-black/35 p-2.5 backdrop-blur-md sm:gap-3 sm:p-3">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 mdl:grid-cols-5">
+        <div className="mdl:grid-cols-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <ControlButton
             icon={<SkipBack className="h-4 w-4" />}
             label="이전"
@@ -196,7 +196,7 @@ export default function ControlPanel({
           />
         </div>
 
-        <div className="grid gap-3 mdl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]">
+        <div className="mdl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] grid gap-3">
           <div className="flex flex-col gap-2 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2.5">
             <div className="space-y-1">
               <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
@@ -207,7 +207,7 @@ export default function ControlPanel({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-end justify-center gap-2.5 mdl:justify-start">
+            <div className="mdl:justify-start flex flex-wrap items-end justify-center gap-2.5">
               <JumpInput
                 label={`Level 1-${totalLevels}`}
                 max={totalLevels}
@@ -246,7 +246,7 @@ export default function ControlPanel({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-end justify-center gap-2.5 mdl:justify-start">
+            <div className="mdl:justify-start flex flex-wrap items-end justify-center gap-2.5">
               <JumpInput
                 label="Minutes"
                 min={1}
