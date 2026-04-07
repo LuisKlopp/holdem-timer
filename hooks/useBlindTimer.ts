@@ -5,7 +5,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { blindLevels } from "@/lib/blindLevels";
 
 const TICK_INTERVAL_MS = 250;
-const ALERT_VOLUME_GAIN = 1.4;
+const ALERT_VOLUME_GAIN = 1.1;
 
 type TimerState = {
   currentLevelIndex: number;
@@ -150,79 +150,85 @@ export const useBlindTimer = () => {
     const now = audioContext.currentTime;
     const masterGain = audioContext.createGain();
     const compressor = audioContext.createDynamicsCompressor();
+    const toneFilter = audioContext.createBiquadFilter();
+    const repeatCount = 3;
+    const repeatInterval = 0.78;
+    const totalDuration = repeatCount * repeatInterval + 0.8;
 
     masterGain.gain.setValueAtTime(0.0001, now);
     masterGain.gain.linearRampToValueAtTime(
-      0.34 * ALERT_VOLUME_GAIN,
-      now + 0.01,
+      0.24 * ALERT_VOLUME_GAIN,
+      now + 0.04,
     );
     masterGain.gain.exponentialRampToValueAtTime(
-      0.2 * ALERT_VOLUME_GAIN,
-      now + 0.2,
+      0.12 * ALERT_VOLUME_GAIN,
+      now + totalDuration * 0.55,
     );
-    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.7);
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + totalDuration);
 
     compressor.threshold.setValueAtTime(-18, now);
     compressor.knee.setValueAtTime(16, now);
-    compressor.ratio.setValueAtTime(3, now);
-    compressor.attack.setValueAtTime(0.003, now);
-    compressor.release.setValueAtTime(0.2, now);
+    compressor.ratio.setValueAtTime(2.4, now);
+    compressor.attack.setValueAtTime(0.01, now);
+    compressor.release.setValueAtTime(0.28, now);
 
-    masterGain.connect(compressor);
+    toneFilter.type = "lowpass";
+    toneFilter.frequency.setValueAtTime(2400, now);
+    toneFilter.Q.setValueAtTime(0.7, now);
+
+    masterGain.connect(toneFilter);
+    toneFilter.connect(compressor);
     compressor.connect(audioContext.destination);
 
-    const createRingTone = (
+    const createChimeNote = (
       startAt: number,
-      leadFrequency: number,
-      ringFrequency: number,
+      frequency: number,
       duration: number,
+      detune = 0,
     ) => {
-      const leadOscillator = audioContext.createOscillator();
-      const ringOscillator = audioContext.createOscillator();
+      const bodyOscillator = audioContext.createOscillator();
+      const harmonyOscillator = audioContext.createOscillator();
       const shimmerOscillator = audioContext.createOscillator();
       const noteGain = audioContext.createGain();
 
-      leadOscillator.type = "triangle";
-      leadOscillator.frequency.setValueAtTime(leadFrequency, startAt);
-      leadOscillator.frequency.exponentialRampToValueAtTime(
-        leadFrequency * 0.995,
-        startAt + duration * 0.35,
-      );
+      bodyOscillator.type = "sine";
+      bodyOscillator.frequency.setValueAtTime(frequency, startAt);
+      bodyOscillator.detune.setValueAtTime(detune, startAt);
 
-      ringOscillator.type = "sine";
-      ringOscillator.frequency.setValueAtTime(ringFrequency, startAt + 0.06);
-      ringOscillator.frequency.exponentialRampToValueAtTime(
-        ringFrequency * 0.992,
-        startAt + duration,
-      );
+      harmonyOscillator.type = "triangle";
+      harmonyOscillator.frequency.setValueAtTime(frequency * 1.5, startAt);
+      harmonyOscillator.detune.setValueAtTime(detune - 4, startAt);
 
-      shimmerOscillator.type = "triangle";
-      shimmerOscillator.frequency.setValueAtTime(ringFrequency * 2, startAt + 0.06);
-      shimmerOscillator.detune.setValueAtTime(6, startAt + 0.06);
+      shimmerOscillator.type = "sine";
+      shimmerOscillator.frequency.setValueAtTime(frequency * 2, startAt);
+      shimmerOscillator.detune.setValueAtTime(detune + 8, startAt);
 
       noteGain.gain.setValueAtTime(0.0001, startAt);
-      noteGain.gain.linearRampToValueAtTime(0.82, startAt + 0.012);
-      noteGain.gain.exponentialRampToValueAtTime(0.34, startAt + 0.09);
-      noteGain.gain.exponentialRampToValueAtTime(0.18, startAt + duration * 0.5);
+      noteGain.gain.linearRampToValueAtTime(0.42, startAt + 0.03);
+      noteGain.gain.exponentialRampToValueAtTime(0.16, startAt + duration * 0.45);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
 
-      leadOscillator.connect(noteGain);
-      ringOscillator.connect(noteGain);
+      bodyOscillator.connect(noteGain);
+      harmonyOscillator.connect(noteGain);
       shimmerOscillator.connect(noteGain);
       noteGain.connect(masterGain);
 
-      leadOscillator.start(startAt);
-      ringOscillator.start(startAt + 0.06);
-      shimmerOscillator.start(startAt + 0.06);
-      leadOscillator.stop(startAt + duration * 0.4);
-      ringOscillator.stop(startAt + duration);
-      shimmerOscillator.stop(startAt + duration * 0.92);
+      bodyOscillator.start(startAt);
+      harmonyOscillator.start(startAt);
+      shimmerOscillator.start(startAt + 0.02);
+      bodyOscillator.stop(startAt + duration);
+      harmonyOscillator.stop(startAt + duration * 0.92);
+      shimmerOscillator.stop(startAt + duration * 0.8);
     };
 
-    createRingTone(now, 1396.91, 1760, 0.34);
-    createRingTone(now + 0.34, 1318.51, 1661.22, 0.38);
-    createRingTone(now + 0.82, 1396.91, 1760, 0.34);
-    createRingTone(now + 1.16, 1318.51, 1661.22, 0.44);
+    const createAlertPhrase = (startAt: number) => {
+      createChimeNote(startAt, 783.99, 0.42);
+      createChimeNote(startAt + 0.22, 987.77, 0.52, 5);
+    };
+
+    for (let index = 0; index < repeatCount; index += 1) {
+      createAlertPhrase(now + index * repeatInterval);
+    }
   });
 
   useEffect(() => {

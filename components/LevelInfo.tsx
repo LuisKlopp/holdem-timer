@@ -24,7 +24,7 @@ export default function LevelInfo({
             <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/70 uppercase sm:text-sm">
               Current Stage
             </p>
-            <h1 className="font-dmdisplay text-6xl leading-none text-amber-50">
+            <h1 className="font-dmdisplay text-5xl leading-none text-amber-50">
               {getLevelTitle(currentLevel)}
             </h1>
           </div>
