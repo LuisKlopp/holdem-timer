@@ -51,7 +51,7 @@ function ControlButton({
 }: ButtonProps) {
   return (
     <button
-      className={`btn-press-in inline-flex min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-[11px] font-semibold transition hover:-translate-y-0.5 sm:text-sm ${
+      className={`btn-press-in mdl:py-2 inline-flex min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-[11px] font-semibold transition hover:-translate-y-0.5 sm:text-sm ${
         isPrimary
           ? "border-amber-300/60 bg-amber-200 text-neutral-950 shadow-[0_12px_36px_rgba(251,191,36,0.25)]"
           : "border-white/12 bg-white/8 text-white/90 hover:bg-white/12"
@@ -79,12 +79,12 @@ function JumpInput({
   value: string;
 }) {
   return (
-    <label className="flex min-w-[4.25rem] flex-col gap-1.5 sm:min-w-[4.75rem]">
+    <label className="flex min-w-0 flex-1 flex-col gap-1.5">
       <span className="text-[10px] font-semibold tracking-[0.14em] text-white/45 uppercase">
         {label}
       </span>
       <input
-        className="rounded-xl border border-white/12 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition outline-none placeholder:text-white/25 focus:border-amber-300/50 focus:bg-white/12 sm:text-base"
+        className="mdl:py-1.5 w-full rounded-xl border border-white/12 bg-white/8 px-2 py-2 text-center text-sm font-semibold text-white transition outline-none placeholder:text-white/25 focus:border-amber-300/50 focus:bg-white/12 sm:text-base"
         inputMode="numeric"
         max={max}
         min={min}
@@ -151,7 +151,7 @@ export default function ControlPanel({
 
   return (
     <section className="w-full">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 rounded-[1.5rem] border border-white/10 bg-black/35 p-2.5 backdrop-blur-md sm:gap-3 sm:p-3">
+      <div className="mdl:gap-2 mdl:p-2.5 mx-auto flex w-full max-w-6xl flex-col gap-2 rounded-[1.5rem] border border-white/10 bg-black/35 p-2.5 backdrop-blur-md">
         <div className="mdl:grid-cols-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <ControlButton
             icon={<SkipBack className="h-4 w-4" />}
@@ -196,18 +196,9 @@ export default function ControlPanel({
           />
         </div>
 
-        <div className="mdl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] grid gap-3">
-          <div className="flex flex-col gap-2 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2.5">
-            <div className="space-y-1">
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
-                Jump Control
-              </p>
-              <p className="text-xs text-white/55 sm:text-sm">
-                원하는 레벨과 남은 시간을 입력해서 바로 이동합니다.
-              </p>
-            </div>
-
-            <div className="mdl:justify-start flex flex-wrap items-end justify-center gap-2.5">
+        <div className="mdl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)] grid gap-2.5">
+          <div className="flex flex-col items-center justify-center gap-1.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-1.5 py-2">
+            <div className="grid w-full grid-cols-2 gap-2 mdl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(6.25rem,0.95fr)]">
               <JumpInput
                 label={`Level 1-${totalLevels}`}
                 max={totalLevels}
@@ -227,7 +218,7 @@ export default function ControlPanel({
                 value={secondValue}
               />
               <button
-                className="btn-press-in inline-flex min-w-24 items-center justify-center rounded-full border border-amber-300/50 bg-amber-300/12 px-4 py-2.5 text-xs font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/18 sm:min-w-[7rem] sm:text-sm"
+                className="btn-press-in mdl:py-2 inline-flex w-full items-center justify-center self-end rounded-full border border-amber-300/50 bg-amber-300/12 px-3 py-2.5 text-xs font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-300/18 sm:text-sm"
                 onClick={applyJump}
                 type="button"
               >
@@ -236,17 +227,8 @@ export default function ControlPanel({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2.5">
-            <div className="space-y-1">
-              <p className="text-[11px] font-semibold tracking-[0.12em] text-amber-200/65 uppercase">
-                Level Duration
-              </p>
-              <p className="text-xs text-white/55 sm:text-sm">
-                일반 레벨 기본 시간은 현재 {levelDurationMinutes}분입니다.
-              </p>
-            </div>
-
-            <div className="mdl:justify-start flex flex-wrap items-end justify-center gap-2.5">
+          <div className="mdl:py-3.5 flex flex-col items-center justify-center gap-1.5 rounded-[1.25rem] border border-white/8 bg-white/5 px-3 py-2">
+            <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(6.4rem,0.95fr)] gap-2">
               <JumpInput
                 label="Minutes"
                 min={1}
@@ -254,7 +236,7 @@ export default function ControlPanel({
                 value={durationValue}
               />
               <button
-                className="btn-press-in inline-flex min-w-24 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/12 px-4 py-2.5 text-xs font-semibold text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-300/18 sm:min-w-[7rem] sm:text-sm"
+                className="btn-press-in mdl:py-2 inline-flex w-full items-center justify-center self-end rounded-full border border-emerald-300/40 bg-emerald-300/12 px-3 py-2.5 text-xs font-semibold text-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-300/18 sm:text-sm"
                 onClick={applyDuration}
                 type="button"
               >

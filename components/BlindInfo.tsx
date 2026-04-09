@@ -16,24 +16,24 @@ export default function BlindInfo({
       key={`blinds-${animationKey}`}
       className="animate-level-flash w-full"
     >
-      <div className="flex min-h-[12rem] flex-col justify-center rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-5 text-center backdrop-blur-sm sm:py-6">
-        <p className="text-lg font-semibold tracking-[0.18em] text-white/45 uppercase sm:text-xl">
+      <div className="mdl:min-h-60 mdl:py-3.5 flex min-h-39 flex-col justify-center rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 text-center backdrop-blur-sm">
+        <p className="text-base font-semibold tracking-[0.18em] text-white/45 uppercase sm:text-lg">
           Blinds
         </p>
-        <div className="mt-3 flex flex-wrap items-end justify-center gap-x-4 gap-y-2 text-white">
-          <span className="text-lg font-semibold tracking-[0.16em] text-white/55 uppercase sm:text-2xl">
+        <div className="mt-2.5 flex flex-wrap items-end justify-center gap-x-3 gap-y-2 text-white">
+          <span className="text-base font-semibold tracking-[0.16em] text-white/55 uppercase sm:text-xl">
             (SB)
           </span>
-          <span className="text-[clamp(2.8rem,7vw,5.4rem)] leading-none font-bold">
+          <span className="text-7xl leading-none font-bold">
             {currentLevel.isBreak ? "-" : formatBlind(currentLevel.sb)}
           </span>
-          <span className="text-[clamp(2.1rem,5vw,3.8rem)] leading-none font-medium text-white/45">
+          <span className="text-[clamp(1.8rem,4vw,3.2rem)] leading-none font-medium text-white/45">
             /
           </span>
-          <span className="text-[clamp(2.8rem,7vw,5.4rem)] leading-none font-bold">
+          <span className="text-7xl leading-none font-bold">
             {currentLevel.isBreak ? "-" : formatBlind(currentLevel.bb)}
           </span>
-          <span className="text-lg font-semibold tracking-[0.16em] text-white/55 uppercase sm:text-2xl">
+          <span className="text-base font-semibold tracking-[0.16em] text-white/55 uppercase sm:text-xl">
             (BB)
           </span>
         </div>
