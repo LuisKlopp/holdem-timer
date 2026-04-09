@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import {
   appendPodiumRecord,
   clearPodiumRecords,
+  getTopWinnerLeaders,
   type PodiumRecord,
   readPodiumRecords,
 } from "@/lib/podiumStorage";
@@ -72,6 +73,7 @@ export default function PodiumPage() {
         timeStyle: "short",
       })
     : null;
+  const topLeaders = getTopWinnerLeaders(records, 2);
 
   return (
     <main className="relative min-h-svh overflow-hidden bg-[#050816] px-3 py-4 text-white sm:px-4 sm:py-5">
@@ -208,40 +210,44 @@ export default function PodiumPage() {
 
           <section className="rounded-[2rem] border border-white/10 bg-white/6 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-6">
             <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/65 uppercase">
-              Live Preview
+              Winner Ranking
             </p>
             <h2 className="mt-2 text-xl font-semibold text-white">
-              시상대 미리보기
+              우승횟수 1위, 2위
             </h2>
 
             <div className="mt-5 grid gap-4">
               <article className="relative overflow-hidden rounded-[1.75rem] border border-amber-200/15 bg-[linear-gradient(135deg,rgba(245,158,11,0.22),rgba(255,255,255,0.04))] p-5">
                 <div className="absolute -top-6 right-4 h-20 w-20 rounded-full bg-amber-200/14 blur-2xl" />
                 <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/75 uppercase">
-                  1st
+                  Top 1
                 </p>
                 <p className="mt-3 text-3xl font-semibold text-white">
-                  {isHydrated && form.firstPlace
-                    ? form.firstPlace
-                    : "우승 닉네임"}
+                  {isHydrated && topLeaders[0]
+                    ? topLeaders[0].name
+                    : "아직 없음"}
                 </p>
                 <p className="mt-2 text-sm text-amber-50/70">
-                  가장 높은 자리의 닉네임이 이 카드에 표시됩니다.
+                  {topLeaders[0]
+                    ? `${topLeaders[0].wins}회 우승`
+                    : "누적된 우승 기록이 없습니다."}
                 </p>
               </article>
 
               <article className="relative overflow-hidden rounded-[1.75rem] border border-sky-200/15 bg-[linear-gradient(135deg,rgba(56,189,248,0.2),rgba(255,255,255,0.04))] p-5">
                 <div className="absolute -top-6 right-4 h-20 w-20 rounded-full bg-sky-200/14 blur-2xl" />
                 <p className="text-xs font-semibold tracking-[0.24em] text-sky-100/75 uppercase">
-                  2nd
+                  Top 2
                 </p>
                 <p className="mt-3 text-3xl font-semibold text-white">
-                  {isHydrated && form.secondPlace
-                    ? form.secondPlace
-                    : "준우승 닉네임"}
+                  {isHydrated && topLeaders[1]
+                    ? topLeaders[1].name
+                    : "아직 없음"}
                 </p>
                 <p className="mt-2 text-sm text-sky-50/70">
-                  두 번째 자리의 닉네임이 이 카드에 표시됩니다.
+                  {topLeaders[1]
+                    ? `${topLeaders[1].wins}회 우승`
+                    : "두 번째 랭킹 데이터가 없습니다."}
                 </p>
               </article>
             </div>

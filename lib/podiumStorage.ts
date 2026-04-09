@@ -162,3 +162,46 @@ export const getPodiumStats = (records: PodiumRecord[]) => {
     totalGames: records.length,
   };
 };
+
+export const getTopWinnerLeaders = (
+  records: PodiumRecord[],
+  limit = 2
+) => {
+  const winCounts = new Map<string, { wins: number; lastWinAt: string }>();
+
+  for (const record of records) {
+    const normalizedWinner = record.firstPlace.trim();
+
+    if (!normalizedWinner) {
+      continue;
+    }
+
+    const existingWinner = winCounts.get(normalizedWinner);
+
+    if (existingWinner) {
+      existingWinner.wins += 1;
+      existingWinner.lastWinAt = record.createdAt;
+      continue;
+    }
+
+    winCounts.set(normalizedWinner, {
+      wins: 1,
+      lastWinAt: record.createdAt,
+    });
+  }
+
+  return Array.from(winCounts.entries())
+    .map(([name, summary]) => ({
+      name,
+      wins: summary.wins,
+      lastWinAt: summary.lastWinAt,
+    }))
+    .sort((left, right) => {
+      if (right.wins !== left.wins) {
+        return right.wins - left.wins;
+      }
+
+      return right.lastWinAt.localeCompare(left.lastWinAt);
+    })
+    .slice(0, limit);
+};
