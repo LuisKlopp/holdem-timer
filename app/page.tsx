@@ -56,7 +56,7 @@ export default function Home() {
 
       <div className="mdl:gap-3.5 mdl:pt-7 relative mx-auto flex h-full max-w-7xl flex-col gap-3 pt-6 pb-3">
         <header className="flex flex-col gap-2.5">
-          <p className="text-center text-6xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-4xl lg:text-left">
+          <p className="text-center text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-4xl lg:text-left">
             엘리오 홀덤 타이머
           </p>
 
@@ -71,7 +71,7 @@ export default function Home() {
         </header>
 
         <div className="flex flex-1 flex-col">
-          <section className="mdl:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)] grid gap-2.5">
+          <section className="mdl:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)] translate-y-2 grid gap-2.5 sm:translate-y-3">
             <div className="flex gap-2">
               <TimerDisplay
                 animationKey={animationKey}
@@ -120,7 +120,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto -translate-y-2 sm:-translate-y-3">
           <ControlPanel
             animationKey={animationKey}
             currentLevelNumber={currentLevelNumber}
