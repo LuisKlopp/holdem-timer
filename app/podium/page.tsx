@@ -273,7 +273,7 @@ export default function PodiumPage() {
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-white">
-                            {record.firstPlace}
+                            1등 {record.firstPlace}
                           </p>
                           <p className="truncate text-xs text-white/45">
                             2등 {record.secondPlace}
