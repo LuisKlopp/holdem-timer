@@ -146,7 +146,7 @@ export default function ControlPanel({
   };
 
   const applyDuration = () => {
-    onSetLevelDuration(Number(durationValue || "8"));
+    onSetLevelDuration(Number(durationValue || "7"));
   };
 
   return (
