@@ -55,12 +55,12 @@ const formatElapsedTime = (timeMs: number) => {
 
 const createInitialState = (): TimerState => ({
   currentLevelIndex: 0,
-  remainingTime: getLevelDurationMs(0, 420),
+  remainingTime: getLevelDurationMs(0, 480),
   isRunning: false,
   endTime: null,
   runStartedAt: null,
   elapsedBeforeRun: 0,
-  levelDurationSeconds: 420,
+  levelDurationSeconds: 480,
   soundEnabled: true,
   animationKey: 0,
   isHydrated: true,
