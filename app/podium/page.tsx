@@ -94,6 +94,19 @@ export default function PodiumPage() {
     : null;
   const topLeaders = getTopWinnerLeaders(records, 2);
   const winnerLeaders = getTopWinnerLeaders(records, records.length);
+  const winnerRankRows = winnerLeaders.map((winner) => {
+    const rank =
+      winnerLeaders.findIndex((leader) => leader.wins === winner.wins) + 1;
+    const isTied = winnerLeaders.some(
+      (leader) => leader.name !== winner.name && leader.wins === winner.wins
+    );
+
+    return {
+      ...winner,
+      rank,
+      rankLabel: `${isTied ? "공동 " : ""}${rank}위`,
+    };
+  });
 
   return (
     <main className="relative min-h-svh overflow-hidden bg-[#050816] px-3 py-4 text-white sm:px-4 sm:py-5">
@@ -367,16 +380,16 @@ export default function PodiumPage() {
             </div>
 
             <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
-              {isHydrated && winnerLeaders.length > 0 ? (
+              {isHydrated && winnerRankRows.length > 0 ? (
                 <div className="space-y-2">
-                  {winnerLeaders.map((winner, index) => (
+                  {winnerRankRows.map((winner) => (
                     <div
                       className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-3"
                       key={winner.name}
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-amber-100/65">
-                          {index + 1}위
+                          {winner.rankLabel}
                         </p>
                         <p className="mt-1 truncate text-lg font-semibold text-white">
                           {winner.name}
