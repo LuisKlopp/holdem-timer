@@ -29,3 +29,5 @@ export const blindLevels: BlindLevel[] = [
   { level: 19, sb: 20000, bb: 40000, duration: 480, isBreak: false },
   { level: 20, sb: 30000, bb: 60000, duration: 480, isBreak: false },
 ];
+
+// 200, 400, 800, 1200, 1600, 2000, 3000, 4000, 5000, 6000,
