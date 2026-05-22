@@ -14,7 +14,7 @@ type TimerState = {
   endTime: number | null;
   runStartedAt: number | null;
   elapsedBeforeRun: number;
-  levelDurationSeconds: number;
+  levelDurationOverrideSeconds: number | null;
   soundEnabled: boolean;
   animationKey: number;
   isHydrated: boolean;
@@ -25,11 +25,15 @@ const clampLevelIndex = (levelIndex: number) =>
 
 const getLevelDurationMs = (
   levelIndex: number,
-  levelDurationSeconds: number,
+  levelDurationOverrideSeconds: number | null,
 ) => {
   const level = blindLevels[clampLevelIndex(levelIndex)];
+  const durationSeconds =
+    level.isBreak || levelDurationOverrideSeconds === null
+      ? level.duration
+      : levelDurationOverrideSeconds;
 
-  return (level.isBreak ? level.duration : levelDurationSeconds) * 1000;
+  return durationSeconds * 1000;
 };
 
 const formatTime = (timeMs: number) => {
@@ -55,12 +59,12 @@ const formatElapsedTime = (timeMs: number) => {
 
 const createInitialState = (): TimerState => ({
   currentLevelIndex: 0,
-  remainingTime: getLevelDurationMs(0, 480),
+  remainingTime: getLevelDurationMs(0, null),
   isRunning: false,
   endTime: null,
   runStartedAt: null,
   elapsedBeforeRun: 0,
-  levelDurationSeconds: 480,
+  levelDurationOverrideSeconds: null,
   soundEnabled: true,
   animationKey: 0,
   isHydrated: true,
@@ -69,7 +73,7 @@ const createInitialState = (): TimerState => ({
 const resolveRunningState = (
   currentLevelIndex: number,
   endTime: number,
-  levelDurationSeconds: number,
+  levelDurationOverrideSeconds: number | null,
   now: number,
 ) => {
   let nextLevelIndex = clampLevelIndex(currentLevelIndex);
@@ -78,7 +82,10 @@ const resolveRunningState = (
 
   while (nextLevelIndex < blindLevels.length - 1 && now >= nextEndTime) {
     nextLevelIndex += 1;
-    nextEndTime += getLevelDurationMs(nextLevelIndex, levelDurationSeconds);
+    nextEndTime += getLevelDurationMs(
+      nextLevelIndex,
+      levelDurationOverrideSeconds,
+    );
     didAdvance = true;
   }
 
@@ -247,7 +254,7 @@ export const useBlindTimer = () => {
         const resolvedState = resolveRunningState(
           previousState.currentLevelIndex,
           previousState.endTime,
-          previousState.levelDurationSeconds,
+          previousState.levelDurationOverrideSeconds,
           now,
         );
 
@@ -302,7 +309,7 @@ export const useBlindTimer = () => {
         const resolvedState = resolveRunningState(
           previousState.currentLevelIndex,
           previousState.endTime,
-          previousState.levelDurationSeconds,
+          previousState.levelDurationOverrideSeconds,
           Date.now(),
         );
 
@@ -345,7 +352,7 @@ export const useBlindTimer = () => {
       const nextLevelIndex = clampLevelIndex(targetLevelIndex);
       const nextDuration = getLevelDurationMs(
         nextLevelIndex,
-        previousState.levelDurationSeconds,
+        previousState.levelDurationOverrideSeconds,
       );
 
       if (previousState.currentLevelIndex === nextLevelIndex) {
@@ -393,7 +400,10 @@ export const useBlindTimer = () => {
     const now = Date.now();
 
     setState((previousState) => {
-      if (previousState.levelDurationSeconds === nextLevelDurationSeconds) {
+      if (
+        previousState.levelDurationOverrideSeconds ===
+        nextLevelDurationSeconds
+      ) {
         return previousState;
       }
 
@@ -402,13 +412,13 @@ export const useBlindTimer = () => {
       if (currentLevel.isBreak) {
         return {
           ...previousState,
-          levelDurationSeconds: nextLevelDurationSeconds,
+          levelDurationOverrideSeconds: nextLevelDurationSeconds,
         };
       }
 
       const previousDuration = getLevelDurationMs(
         previousState.currentLevelIndex,
-        previousState.levelDurationSeconds,
+        previousState.levelDurationOverrideSeconds,
       );
       const nextDuration = getLevelDurationMs(
         previousState.currentLevelIndex,
@@ -422,7 +432,7 @@ export const useBlindTimer = () => {
 
       return {
         ...previousState,
-        levelDurationSeconds: nextLevelDurationSeconds,
+        levelDurationOverrideSeconds: nextLevelDurationSeconds,
         remainingTime: nextRemainingTime,
         endTime: previousState.isRunning ? now + nextRemainingTime : null,
       };
@@ -442,7 +452,7 @@ export const useBlindTimer = () => {
           ? previousState.remainingTime
           : getLevelDurationMs(
               previousState.currentLevelIndex,
-              previousState.levelDurationSeconds,
+              previousState.levelDurationOverrideSeconds,
             );
 
       return {
@@ -494,6 +504,11 @@ export const useBlindTimer = () => {
   });
 
   const currentLevel = blindLevels[state.currentLevelIndex];
+  const currentLevelDurationSeconds =
+    getLevelDurationMs(
+      state.currentLevelIndex,
+      state.levelDurationOverrideSeconds,
+    ) / 1000;
   const nextLevels = blindLevels.slice(
     state.currentLevelIndex + 1,
     state.currentLevelIndex + 3,
@@ -513,8 +528,8 @@ export const useBlindTimer = () => {
     formattedTime: formatTime(state.remainingTime),
     isHydrated: state.isHydrated,
     isRunning: state.isRunning,
-    levelDurationMinutes: Math.floor(state.levelDurationSeconds / 60),
-    levelDurationSeconds: state.levelDurationSeconds,
+    levelDurationMinutes: Math.floor(currentLevelDurationSeconds / 60),
+    levelDurationSeconds: currentLevelDurationSeconds,
     nextLevels,
     remainingTime: state.remainingTime,
     totalElapsedTime: formatElapsedTime(totalElapsedMs),
