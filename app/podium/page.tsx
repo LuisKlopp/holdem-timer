@@ -94,19 +94,29 @@ export default function PodiumPage() {
     : null;
   const topLeaders = getTopWinnerLeaders(records, 2);
   const winnerLeaders = getTopWinnerLeaders(records, records.length);
-  const winnerRankRows = winnerLeaders.map((winner) => {
-    const rank =
-      winnerLeaders.findIndex((leader) => leader.wins === winner.wins) + 1;
-    const isTied = winnerLeaders.some(
-      (leader) => leader.name !== winner.name && leader.wins === winner.wins
-    );
+  const winnerRankRows = winnerLeaders.reduce<
+    {
+      names: string[];
+      rankLabel: string;
+      wins: number;
+    }[]
+  >((rows, winner, index) => {
+    if (rows.some((row) => row.wins === winner.wins)) {
+      return rows;
+    }
 
-    return {
-      ...winner,
-      rank,
-      rankLabel: `${isTied ? "공동 " : ""}${rank}위`,
-    };
-  });
+    const tiedNames = winnerLeaders
+      .filter((leader) => leader.wins === winner.wins)
+      .map((leader) => leader.name);
+
+    rows.push({
+      names: tiedNames,
+      rankLabel: `${tiedNames.length > 1 ? "공동 " : ""}${index + 1}위`,
+      wins: winner.wins,
+    });
+
+    return rows;
+  }, []);
 
   return (
     <main className="relative min-h-svh overflow-hidden bg-[#050816] px-3 py-4 text-white sm:px-4 sm:py-5">
@@ -385,15 +395,22 @@ export default function PodiumPage() {
                   {winnerRankRows.map((winner) => (
                     <div
                       className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-3"
-                      key={winner.name}
+                      key={winner.wins}
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-amber-100/65">
                           {winner.rankLabel}
                         </p>
-                        <p className="mt-1 truncate text-lg font-semibold text-white">
-                          {winner.name}
-                        </p>
+                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                          {winner.names.map((name) => (
+                            <span
+                              className="text-lg font-semibold text-white"
+                              key={name}
+                            >
+                              {name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <span className="shrink-0 rounded-full bg-amber-200/12 px-3 py-1.5 text-sm font-bold text-amber-100">
                         {winner.wins}회 우승
