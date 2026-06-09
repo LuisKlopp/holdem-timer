@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 
+import { getPodiumApiErrorMessage } from "@/api";
 import {
-  appendPodiumRecord,
-  clearPodiumRecords,
-  getTopWinnerLeaders,
-  type PodiumRecord,
-  readPodiumRecords,
-} from "@/lib/podiumStorage";
+  useCreatePodiumRecord,
+  useDeletePodiumRecords,
+  usePodiumRankings,
+  usePodiumRecords,
+  usePodiumStats,
+  useRecentPodiumRecords,
+} from "@/hooks";
 
 type PodiumForm = {
   firstPlace: string;
@@ -23,18 +25,14 @@ const INITIAL_FORM: PodiumForm = {
 
 export default function PodiumPage() {
   const [form, setForm] = useState<PodiumForm>(INITIAL_FORM);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [records, setRecords] = useState<PodiumRecord[]>([]);
-
-  useEffect(() => {
-    const nextRecords = readPodiumRecords();
-
-    setRecords(nextRecords);
-    setSavedAt(nextRecords[nextRecords.length - 1]?.createdAt ?? null);
-    setIsHydrated(true);
-  }, []);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const recordsQuery = usePodiumRecords(1, 20);
+  const recentRecordsQuery = useRecentPodiumRecords(5);
+  const statsQuery = usePodiumStats();
+  const rankingsQuery = usePodiumRankings(100);
+  const createRecordMutation = useCreatePodiumRecord();
+  const deleteRecordsMutation = useDeletePodiumRecords();
 
   useEffect(() => {
     if (!isWinnerModalOpen) {
@@ -53,24 +51,25 @@ export default function PodiumPage() {
     };
   }, [isWinnerModalOpen]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const savedRecord = appendPodiumRecord(form);
+    setMutationError(null);
 
-    if (!savedRecord) {
-      return;
+    try {
+      await createRecordMutation.mutateAsync(form);
+      setForm(INITIAL_FORM);
+    } catch (error) {
+      setMutationError(
+        getPodiumApiErrorMessage(error, "경기 기록을 추가하지 못했습니다.")
+      );
     }
-
-    setRecords((previousRecords) => [...previousRecords, savedRecord]);
-    setSavedAt(savedRecord.createdAt);
-    setForm(INITIAL_FORM);
   };
 
   const handleClearInputs = () => {
     setForm(INITIAL_FORM);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     const shouldReset = window.confirm(
       "누적된 경기 기록이 모두 삭제됩니다. 계속하시겠습니까?"
     );
@@ -79,22 +78,31 @@ export default function PodiumPage() {
       return;
     }
 
-    clearPodiumRecords();
-    setSavedAt(null);
-    setRecords([]);
-    setForm(INITIAL_FORM);
-    setIsWinnerModalOpen(false);
+    setMutationError(null);
+
+    try {
+      await deleteRecordsMutation.mutateAsync();
+      setForm(INITIAL_FORM);
+      setIsWinnerModalOpen(false);
+    } catch (error) {
+      setMutationError(
+        getPodiumApiErrorMessage(error, "전체 경기 기록을 삭제하지 못했습니다.")
+      );
+    }
   };
 
+  const records = recordsQuery.data?.items ?? [];
+  const recentRecords = recentRecordsQuery.data ?? [];
+  const rankings = rankingsQuery.data ?? [];
+  const savedAt = recentRecords[0]?.createdAt ?? records[0]?.createdAt ?? null;
   const formattedSavedAt = savedAt
     ? new Date(savedAt).toLocaleString("ko-KR", {
         dateStyle: "medium",
         timeStyle: "short",
       })
     : null;
-  const topLeaders = getTopWinnerLeaders(records, 2);
-  const winnerLeaders = getTopWinnerLeaders(records, records.length);
-  const winnerRankRows = winnerLeaders.reduce<
+  const topLeaders = rankings.slice(0, 2);
+  const winnerRankRows = rankings.reduce<
     {
       names: string[];
       rankLabel: string;
@@ -105,7 +113,7 @@ export default function PodiumPage() {
       return rows;
     }
 
-    const tiedNames = winnerLeaders
+    const tiedNames = rankings
       .filter((leader) => leader.wins === winner.wins)
       .map((leader) => leader.name);
 
@@ -117,6 +125,16 @@ export default function PodiumPage() {
 
     return rows;
   }, []);
+  const queryError =
+    recordsQuery.error ??
+    recentRecordsQuery.error ??
+    statsQuery.error ??
+    rankingsQuery.error;
+  const isInitialLoading =
+    recordsQuery.isPending ||
+    recentRecordsQuery.isPending ||
+    statsQuery.isPending ||
+    rankingsQuery.isPending;
 
   return (
     <main className="relative min-h-svh overflow-hidden bg-[#050816] px-3 py-4 text-white sm:px-4 sm:py-5">
@@ -136,8 +154,7 @@ export default function PodiumPage() {
               1등 / 2등 닉네임 입력
             </h1>
             <p className="mt-2 text-sm text-white/55 sm:text-base">
-              게임이 끝날 때마다 누적 저장됩니다. 브라우저에만 남고 다른 곳으로
-              전송되지는 않습니다.
+              게임이 끝날 때마다 서버에 경기 결과가 누적 저장됩니다.
             </p>
           </div>
 
@@ -166,14 +183,17 @@ export default function PodiumPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/65 uppercase">
-                  Local Form
+                  Server Form
                 </p>
                 <p className="mt-2 text-sm text-white/55">
                   저장할 때마다 기록이 하나씩 누적됩니다.
                 </p>
               </div>
               <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
-                {records.length}경기
+                {statsQuery.data?.totalGames ??
+                  recordsQuery.data?.pagination.totalItems ??
+                  0}
+                경기
               </div>
             </div>
 
@@ -229,13 +249,15 @@ export default function PodiumPage() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <button
-                className="btn-press-in rounded-full bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-100 px-5 py-3 text-sm font-bold text-slate-900"
+                className="btn-press-in rounded-full bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-100 px-5 py-3 text-sm font-bold text-slate-900 disabled:cursor-not-allowed disabled:opacity-55"
+                disabled={createRecordMutation.isPending}
                 type="submit"
               >
-                기록 추가
+                {createRecordMutation.isPending ? "저장 중..." : "기록 추가"}
               </button>
               <button
-                className="btn-press-in rounded-full border border-white/12 bg-white/6 px-5 py-3 text-sm font-semibold text-white/82"
+                className="btn-press-in rounded-full border border-white/12 bg-white/6 px-5 py-3 text-sm font-semibold text-white/82 disabled:cursor-not-allowed disabled:opacity-55"
+                disabled={createRecordMutation.isPending}
                 onClick={handleClearInputs}
                 type="button"
               >
@@ -244,18 +266,41 @@ export default function PodiumPage() {
             </div>
 
             <div className="mt-4 flex items-end justify-between gap-3">
-              <p className="text-xs text-white/42">
-                {formattedSavedAt
-                  ? `마지막 기록: ${formattedSavedAt}`
-                  : "아직 저장된 경기 결과가 없습니다."}
-              </p>
+              <div>
+                <p className="text-xs text-white/42">
+                  {isInitialLoading
+                    ? "경기 기록을 불러오는 중입니다."
+                    : formattedSavedAt
+                      ? `마지막 기록: ${formattedSavedAt}`
+                      : "아직 저장된 경기 결과가 없습니다."}
+                </p>
+                {mutationError ? (
+                  <p className="mt-1 text-xs text-rose-200" role="alert">
+                    {mutationError}
+                  </p>
+                ) : null}
+                {queryError ? (
+                  <p className="mt-1 text-xs text-rose-200" role="alert">
+                    {getPodiumApiErrorMessage(
+                      queryError,
+                      "경기 기록을 불러오지 못했습니다."
+                    )}
+                  </p>
+                ) : null}
+              </div>
 
               <button
-                className="btn-press-in rounded-full border border-white/8 bg-transparent px-2.5 py-1 text-[11px] font-medium text-white/28 transition hover:border-rose-300/20 hover:text-rose-100"
+                className="btn-press-in rounded-full border border-white/8 bg-transparent px-2.5 py-1 text-[11px] font-medium text-white/28 transition hover:border-rose-300/20 hover:text-rose-100 disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={
+                  createRecordMutation.isPending ||
+                  deleteRecordsMutation.isPending
+                }
                 onClick={handleReset}
                 type="button"
               >
-                기록 전체 삭제
+                {deleteRecordsMutation.isPending
+                  ? "삭제 중..."
+                  : "기록 전체 삭제"}
               </button>
             </div>
           </form>
@@ -275,9 +320,11 @@ export default function PodiumPage() {
                   Top 1
                 </p>
                 <p className="mt-3 text-3xl font-semibold text-white">
-                  {isHydrated && topLeaders[0]
-                    ? topLeaders[0].name
-                    : "아직 없음"}
+                  {rankingsQuery.isPending
+                    ? "불러오는 중"
+                    : topLeaders[0]
+                      ? topLeaders[0].name
+                      : "아직 없음"}
                 </p>
                 <p className="mt-2 text-sm text-amber-50/70">
                   {topLeaders[0]
@@ -292,9 +339,11 @@ export default function PodiumPage() {
                   Top 2
                 </p>
                 <p className="mt-3 text-3xl font-semibold text-white">
-                  {isHydrated && topLeaders[1]
-                    ? topLeaders[1].name
-                    : "아직 없음"}
+                  {rankingsQuery.isPending
+                    ? "불러오는 중"
+                    : topLeaders[1]
+                      ? topLeaders[1].name
+                      : "아직 없음"}
                 </p>
                 <p className="mt-2 text-sm text-sky-50/70">
                   {topLeaders[1]
@@ -313,35 +362,35 @@ export default function PodiumPage() {
               </div>
 
               <div className="mt-4 space-y-2">
-                {isHydrated && records.length > 0 ? (
-                  records
-                    .slice()
-                    .reverse()
-                    .slice(0, 5)
-                    .map((record) => (
-                      <div
-                        key={record.id}
-                        className="flex items-center justify-between rounded-[1.1rem] border border-white/8 bg-white/5 px-3 py-2.5"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-white">
-                            1등 {record.firstPlace}
-                          </p>
-                          <p className="truncate text-xs text-white/45">
-                            2등 {record.secondPlace}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-xs text-white/40">
-                          {new Date(record.createdAt).toLocaleDateString(
-                            "ko-KR",
-                            {
-                              month: "short",
-                              day: "numeric",
-                            }
-                          )}
-                        </span>
+                {recentRecordsQuery.isPending ? (
+                  <p className="text-sm text-white/45">
+                    최근 경기 결과를 불러오는 중입니다.
+                  </p>
+                ) : recentRecords.length > 0 ? (
+                  recentRecords.map((record) => (
+                    <div
+                      key={record.id}
+                      className="flex items-center justify-between rounded-[1.1rem] border border-white/8 bg-white/5 px-3 py-2.5"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">
+                          1등 {record.firstPlace}
+                        </p>
+                        <p className="truncate text-xs text-white/45">
+                          2등 {record.secondPlace}
+                        </p>
                       </div>
-                    ))
+                      <span className="shrink-0 text-xs text-white/40">
+                        {new Date(record.createdAt).toLocaleDateString(
+                          "ko-KR",
+                          {
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                      </span>
+                    </div>
+                  ))
                 ) : (
                   <p className="text-sm text-white/45">
                     아직 누적된 경기 결과가 없습니다.
@@ -390,7 +439,11 @@ export default function PodiumPage() {
             </div>
 
             <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
-              {isHydrated && winnerRankRows.length > 0 ? (
+              {rankingsQuery.isPending ? (
+                <p className="rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-5 text-center text-sm text-white/50">
+                  우승자 명단을 불러오는 중입니다.
+                </p>
+              ) : winnerRankRows.length > 0 ? (
                 <div className="space-y-2">
                   {winnerRankRows.map((winner) => (
                     <div

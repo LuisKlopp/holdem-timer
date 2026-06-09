@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
+import { getPodiumApiErrorMessage } from "@/api";
 import { BlindInfo, ControlPanel, LevelInfo, TimerDisplay } from "@/components";
-import { useBlindTimer } from "@/hooks";
-import { getPodiumStats, readPodiumRecords } from "@/lib/podiumStorage";
+import { useBlindTimer, usePodiumStats } from "@/hooks";
 
 export default function Home() {
-  const [podiumStats, setPodiumStats] = useState(() => getPodiumStats([]));
+  const podiumStatsQuery = usePodiumStats();
+  const podiumStats = podiumStatsQuery.data;
 
   const {
     animationKey,
@@ -29,22 +29,6 @@ export default function Home() {
     totalLevels,
     toggleSound,
   } = useBlindTimer();
-
-  useEffect(() => {
-    const syncPodiumStats = () => {
-      setPodiumStats(getPodiumStats(readPodiumRecords()));
-    };
-
-    syncPodiumStats();
-
-    window.addEventListener("focus", syncPodiumStats);
-    window.addEventListener("storage", syncPodiumStats);
-
-    return () => {
-      window.removeEventListener("focus", syncPodiumStats);
-      window.removeEventListener("storage", syncPodiumStats);
-    };
-  }, []);
 
   return (
     <main className="relative h-svh overflow-hidden bg-[#050816] px-3 text-white sm:px-4">
@@ -71,7 +55,7 @@ export default function Home() {
         </header>
 
         <div className="flex flex-1 flex-col">
-          <section className="mdl:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)] translate-y-2 grid gap-2.5 sm:translate-y-3">
+          <section className="mdl:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)] grid translate-y-2 gap-2.5 sm:translate-y-3">
             <div className="flex gap-2">
               <TimerDisplay
                 animationKey={animationKey}
@@ -94,7 +78,9 @@ export default function Home() {
                     최근 우승자
                   </p>
                   <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
-                    {podiumStats.recentWinner ?? "기록 없음"}
+                    {podiumStatsQuery.isPending
+                      ? "불러오는 중"
+                      : (podiumStats?.recentWinner ?? "기록 없음")}
                   </p>
                 </div>
               </div>
@@ -105,12 +91,23 @@ export default function Home() {
                     최다 우승자 👑
                   </p>
                   <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
-                    {podiumStats.topWinner ?? "기록 없음"}
+                    {podiumStatsQuery.isPending
+                      ? "불러오는 중"
+                      : (podiumStats?.topWinner ?? "기록 없음")}
                   </p>
                 </div>
               </div>
             </div>
           </section>
+
+          {podiumStatsQuery.isError ? (
+            <p className="mt-3 text-center text-xs text-rose-200 lg:text-right">
+              {getPodiumApiErrorMessage(
+                podiumStatsQuery.error,
+                "우승 통계를 불러오지 못했습니다."
+              )}
+            </p>
+          ) : null}
 
           <div className="flex flex-1 items-center py-3">
             <BlindInfo
