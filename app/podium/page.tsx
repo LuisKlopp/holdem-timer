@@ -23,6 +23,38 @@ const INITIAL_FORM: PodiumForm = {
   secondPlace: "",
 };
 
+const getRankTextClassName = (rank: number) => {
+  if (rank === 1) {
+    return "text-amber-200";
+  }
+
+  if (rank === 2) {
+    return "text-slate-100";
+  }
+
+  if (rank === 3) {
+    return "text-orange-200";
+  }
+
+  return "text-amber-100/80";
+};
+
+const getNicknameChipClassName = (rank: number) => {
+  if (rank === 1) {
+    return "border-amber-200/45 bg-amber-200/18 text-amber-50 shadow-[0_0_18px_rgba(251,191,36,0.16)]";
+  }
+
+  if (rank === 2) {
+    return "border-slate-100/35 bg-slate-100/14 text-slate-50 shadow-[0_0_18px_rgba(226,232,240,0.12)]";
+  }
+
+  if (rank === 3) {
+    return "border-orange-300/40 bg-orange-300/14 text-orange-50 shadow-[0_0_18px_rgba(251,146,60,0.12)]";
+  }
+
+  return "border-white/10 bg-white/8 text-white";
+};
+
 export default function PodiumPage() {
   const [form, setForm] = useState<PodiumForm>(INITIAL_FORM);
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
@@ -105,10 +137,11 @@ export default function PodiumPage() {
   const winnerRankRows = rankings.reduce<
     {
       names: string[];
+      rank: number;
       rankLabel: string;
       wins: number;
     }[]
-  >((rows, winner, index) => {
+  >((rows, winner) => {
     if (rows.some((row) => row.wins === winner.wins)) {
       return rows;
     }
@@ -119,7 +152,8 @@ export default function PodiumPage() {
 
     rows.push({
       names: tiedNames,
-      rankLabel: `${tiedNames.length > 1 ? "공동 " : ""}${index + 1}위`,
+      rank: rows.length + 1,
+      rankLabel: `${rows.length + 1}위`,
       wins: winner.wins,
     });
 
@@ -416,7 +450,7 @@ export default function PodiumPage() {
             type="button"
           />
 
-          <section className="relative flex h-[min(34rem,calc(100svh-3rem))] w-full max-w-md flex-col rounded-[2rem] border border-white/12 bg-[#0c1022] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-6">
+          <section className="relative flex w-full max-w-lg flex-col rounded-[2rem] border border-white/12 bg-[#0c1022] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.55)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/65 uppercase">
@@ -438,34 +472,44 @@ export default function PodiumPage() {
               </button>
             </div>
 
-            <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="mt-5 rounded-[1.25rem] border border-amber-200/24 bg-amber-200/10 px-4 py-3.5 sm:px-5">
+              <p className="text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
+                2026년 최다우승자 시상예정
+                <br />
+                1위 : 신세계 상품권 10만원
+                <br />
+                2위 : 신세계 상품권 5만원
+              </p>
+            </div>
+
+            <div className="mt-4">
               {rankingsQuery.isPending ? (
                 <p className="rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-5 text-center text-sm text-white/50">
                   우승자 명단을 불러오는 중입니다.
                 </p>
               ) : winnerRankRows.length > 0 ? (
-                <div className="space-y-2">
+                <div className="grid gap-2">
                   {winnerRankRows.map((winner) => (
                     <div
-                      className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-3"
+                      className="flex min-w-0 items-center gap-3 rounded-[1.25rem] border border-white/8 bg-white/6 px-3 py-2.5"
                       key={winner.wins}
                     >
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-amber-100/65">
-                          {winner.rankLabel}
-                        </p>
-                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                          {winner.names.map((name) => (
-                            <span
-                              className="text-lg font-semibold text-white"
-                              key={name}
-                            >
-                              {name}
-                            </span>
-                          ))}
-                        </div>
+                      <span
+                        className={`shrink-0 text-sm font-bold ${getRankTextClassName(winner.rank)}`}
+                      >
+                        {winner.rankLabel}
+                      </span>
+                      <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
+                        {winner.names.map((name) => (
+                          <span
+                            className={`min-w-0 truncate rounded-full border px-2.5 py-1 text-base font-semibold whitespace-nowrap ${getNicknameChipClassName(winner.rank)}`}
+                            key={name}
+                          >
+                            {name}
+                          </span>
+                        ))}
                       </div>
-                      <span className="shrink-0 rounded-full bg-amber-200/12 px-3 py-1.5 text-sm font-bold text-amber-100">
+                      <span className="shrink-0 rounded-full bg-amber-200/12 px-2.5 py-1.5 text-xs font-bold text-amber-100">
                         {winner.wins}회 우승
                       </span>
                     </div>
