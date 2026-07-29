@@ -479,6 +479,8 @@ export default function PodiumPage() {
                 1위 : 신세계 상품권 10만원
                 <br />
                 2위 : 신세계 상품권 5만원
+                <br />
+                3위 : 신세계 상품권 3만원
               </p>
             </div>
 
