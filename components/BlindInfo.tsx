@@ -14,9 +14,9 @@ export default function BlindInfo({
   return (
     <section
       key={`blinds-${animationKey}`}
-      className="animate-level-flash w-full"
+      className="animate-level-flash h-full w-full"
     >
-      <div className="mdl:min-h-60 mdl:py-3.5 flex min-h-39 flex-col justify-center rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 text-center backdrop-blur-sm">
+      <div className="mdl:min-h-60 mdl:py-3.5 flex h-full min-h-39 flex-col justify-center rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 text-center backdrop-blur-sm">
         <p className="text-base font-semibold tracking-[0.18em] text-white/45 uppercase sm:text-lg">
           Blinds
         </p>
