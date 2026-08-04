@@ -474,13 +474,11 @@ export default function PodiumPage() {
 
             <div className="mt-5 rounded-[1.25rem] border border-amber-200/24 bg-amber-200/10 px-4 py-3.5 sm:px-5">
               <p className="text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
-                2026년 최다우승자 시상예정
+                2026년 5월 ~ 8월
                 <br />
-                1위 : 신세계 상품권 10만원
+                1위 : 신세계 상품권 7만원
                 <br />
-                2위 : 신세계 상품권 5만원
-                <br />
-                3위 : 신세계 상품권 3만원
+                2위 : 신세계 상품권 3만원
               </p>
             </div>
 

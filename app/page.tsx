@@ -246,10 +246,10 @@ export default function Home() {
                 </div>
 
                 {gameMembers && gameMembers.members.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-5 gap-1.5">
+                  <div className="mdl:max-lg:gap-2 mt-3 grid grid-cols-5 gap-1.5">
                     {gameMembers.members.map((member, index) => (
                       <div
-                        className="rounded-lg border border-white/8 bg-white/6 px-2.5 py-2 text-sm font-semibold break-words text-white sm:text-base"
+                        className="mdl:max-lg:px-1 rounded-lg border border-white/8 bg-white/6 px-2.5 py-2 text-sm font-semibold break-words text-white sm:text-base"
                         key={`${member}-${index}`}
                       >
                         {member}
