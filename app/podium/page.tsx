@@ -344,7 +344,7 @@ export default function PodiumPage() {
               Winner Ranking
             </p>
             <h2 className="mt-2 text-xl font-semibold text-white">
-              우승횟수 1위, 2위
+              시즌1 우승횟수 1위, 2위
             </h2>
 
             <div className="mt-5 grid gap-4">

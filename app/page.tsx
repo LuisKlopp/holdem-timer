@@ -192,7 +192,7 @@ export default function Home() {
               <div className="">
                 <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
                   <p className="text-lg font-semibold text-white/78 sm:text-xl">
-                    최근 우승자
+                    시즌1 최근 우승자
                   </p>
                   <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
                     {podiumStatsQuery.isPending
@@ -203,9 +203,16 @@ export default function Home() {
               </div>
 
               <div className="">
-                <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-4 left-1/2 hidden -translate-x-1/2 text-2xl leading-none mdl:block"
+                  >
+                    👑
+                  </span>
                   <p className="text-lg font-semibold text-amber-200 sm:text-xl">
-                    최다 우승자 👑
+                    <span className="mdl:hidden">시즌1 최다 우승자 👑</span>
+                    <span className="hidden mdl:inline">시즌1 최다 우승자</span>
                   </p>
                   <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
                     {podiumStatsQuery.isPending
@@ -240,7 +247,7 @@ export default function Home() {
                   </p>
                   {gameMembers?.round ? (
                     <p className="rounded-full border border-amber-200/20 bg-amber-200/10 px-2.5 py-0.5 text-xs font-semibold text-amber-100">
-                      {gameMembers.round}회차
+                      시즌1 - {gameMembers.round}회차
                     </p>
                   ) : null}
                 </div>
