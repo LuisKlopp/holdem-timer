@@ -172,8 +172,8 @@ export default function Home() {
         </header>
 
         <div className="flex flex-col gap-7 mdl:gap-9 lg:gap-14">
-          <section className="mdl:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)] grid gap-3.5">
-            <div className="flex gap-2">
+          <section className="mdl:grid-cols-[minmax(0,1.5fr)_minmax(27rem,1.55fr)] grid gap-3.5 lg:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)]">
+            <div className="grid min-w-0 grid-cols-2 gap-2">
               <TimerDisplay
                 animationKey={animationKey}
                 formattedTime={formattedTime}
@@ -188,10 +188,10 @@ export default function Home() {
               />
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              <div className="">
+            <div className="grid min-w-0 gap-2.5 sm:grid-cols-2">
+              <div className="min-w-0">
                 <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-                  <p className="text-lg font-semibold text-white/78 sm:text-xl">
+                  <p className="text-lg font-semibold whitespace-nowrap text-white/78 sm:text-xl">
                     시즌1 최근 우승자
                   </p>
                   <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
@@ -202,15 +202,15 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="">
+              <div className="min-w-0">
                 <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute top-4 left-1/2 hidden -translate-x-1/2 text-2xl leading-none mdl:block"
+                    className="pointer-events-none absolute top-0 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-6xl leading-none drop-shadow-[0_10px_22px_rgba(0,0,0,0.45)] mdl:block"
                   >
                     👑
                   </span>
-                  <p className="text-lg font-semibold text-amber-200 sm:text-xl">
+                  <p className="text-lg font-semibold whitespace-nowrap text-amber-200 sm:text-xl">
                     <span className="mdl:hidden">시즌1 최다 우승자 👑</span>
                     <span className="hidden mdl:inline">시즌1 최다 우승자</span>
                   </p>

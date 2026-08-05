@@ -14,7 +14,7 @@ export default function LevelInfo({
   currentLevel,
 }: LevelInfoProps) {
   return (
-    <section className="mx-auto h-48 mdl:h-42">
+    <section className="h-48 mdl:h-42">
       <div
         key={animationKey}
         className="animate-level-flash mdl:p-5 flex h-full min-h-[8.5rem] flex-col justify-center rounded-[1.75rem] p-4 sm:p-5"
