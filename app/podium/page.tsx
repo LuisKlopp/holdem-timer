@@ -473,8 +473,11 @@ export default function PodiumPage() {
             </div>
 
             <div className="mt-5 rounded-[1.25rem] border border-amber-200/24 bg-amber-200/10 px-4 py-3.5 sm:px-5">
-              <p className="text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
-                2026년 5월 ~ 8월
+              <p className="text-center text-2xl leading-tight font-bold text-amber-50 sm:text-3xl">
+                시즌 1
+              </p>
+              <p className="mt-1 text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
+                (2026년 5월 ~ 8월)
                 <br />
                 1위 : 신세계 상품권 7만원
                 <br />

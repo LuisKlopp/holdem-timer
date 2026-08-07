@@ -140,6 +140,26 @@ export default function Home() {
     setDraftMembers(createMemberInputs());
   };
 
+  const handleDeleteSavedMember = (index: number) => {
+    if (!gameMembers) {
+      return;
+    }
+
+    const nextGameMembers = {
+      ...gameMembers,
+      members: gameMembers.members.filter(
+        (_, memberIndex) => memberIndex !== index
+      ),
+      savedAt: new Date().toISOString(),
+    };
+
+    window.localStorage.setItem(
+      GAME_MEMBERS_STORAGE_KEY,
+      JSON.stringify(nextGameMembers)
+    );
+    setGameMembers(nextGameMembers);
+  };
+
   return (
     <main className="relative min-h-svh overflow-x-hidden bg-[#050816] px-3 text-white sm:px-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -256,10 +276,16 @@ export default function Home() {
                   <div className="mdl:max-lg:gap-2 mt-3 grid grid-cols-5 gap-1.5">
                     {gameMembers.members.map((member, index) => (
                       <div
-                        className="mdl:max-lg:px-1 rounded-lg border border-white/8 bg-white/6 px-2.5 py-2 text-sm font-semibold break-words text-white sm:text-base"
+                        className="mdl:max-lg:px-1 relative min-h-10 rounded-lg border border-white/8 bg-white/6 px-2.5 py-2 pr-7 text-sm font-semibold break-words text-white sm:text-base"
                         key={`${member}-${index}`}
                       >
                         {member}
+                        <button
+                          className="btn-press-in absolute -top-1 -right-1 size-5 rounded-full bg-red-500 shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition hover:bg-red-400 focus:ring-2 focus:ring-red-200/60 focus:outline-none"
+                          type="button"
+                          aria-label={`${member} 닉네임 삭제`}
+                          onClick={() => handleDeleteSavedMember(index)}
+                        />
                       </div>
                     ))}
                   </div>
