@@ -502,10 +502,10 @@ export default function PodiumPage() {
                       >
                         {winner.rankLabel}
                       </span>
-                      <div className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
+                      <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                         {winner.names.map((name) => (
                           <span
-                            className={`min-w-0 truncate rounded-full border px-2.5 py-1 text-base font-semibold whitespace-nowrap ${getNicknameChipClassName(winner.rank)}`}
+                            className={`max-w-full rounded-full border px-2.5 py-1 text-base font-semibold break-words ${getNicknameChipClassName(winner.rank)}`}
                             key={name}
                           >
                             {name}
