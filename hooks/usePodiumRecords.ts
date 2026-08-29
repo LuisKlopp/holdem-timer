@@ -8,39 +8,47 @@ import {
   getPodiumStats,
   getRecentPodiumRecords,
 } from "@/api";
+import { CURRENT_SEASON_ID } from "@/constants";
 
 export const podiumQueryKeys = {
   all: ["podium"] as const,
-  rankings: (limit: number) =>
-    [...podiumQueryKeys.all, "rankings", limit] as const,
-  recent: (limit: number) => [...podiumQueryKeys.all, "recent", limit] as const,
-  records: (page: number, limit: number) =>
-    [...podiumQueryKeys.all, "records", page, limit] as const,
-  stats: () => [...podiumQueryKeys.all, "stats"] as const,
+  rankings: (season: number, limit: number) =>
+    [...podiumQueryKeys.all, "season", season, "rankings", limit] as const,
+  recent: (season: number, limit: number) =>
+    [...podiumQueryKeys.all, "season", season, "recent", limit] as const,
+  records: (season: number, page: number, limit: number) =>
+    [...podiumQueryKeys.all, "season", season, "records", page, limit] as const,
+  stats: (season: number) =>
+    [...podiumQueryKeys.all, "season", season, "stats"] as const,
 };
 
-export const usePodiumRecords = (page = 1, limit = 20) =>
+export const usePodiumRecords = (
+  season = CURRENT_SEASON_ID,
+  page = 1,
+  limit = 20
+) =>
   useQuery({
-    queryFn: () => getPodiumRecords(page, limit),
-    queryKey: podiumQueryKeys.records(page, limit),
+    queryFn: () => getPodiumRecords(season, page, limit),
+    queryKey: podiumQueryKeys.records(season, page, limit),
   });
 
-export const useRecentPodiumRecords = (limit = 5) =>
+export const useRecentPodiumRecords = (season = CURRENT_SEASON_ID, limit = 5) =>
   useQuery({
-    queryFn: () => getRecentPodiumRecords(limit),
-    queryKey: podiumQueryKeys.recent(limit),
+    queryFn: () => getRecentPodiumRecords(season, limit),
+    queryKey: podiumQueryKeys.recent(season, limit),
   });
 
-export const usePodiumStats = () =>
+export const usePodiumStats = (season = CURRENT_SEASON_ID, enabled = true) =>
   useQuery({
-    queryFn: getPodiumStats,
-    queryKey: podiumQueryKeys.stats(),
+    enabled,
+    queryFn: () => getPodiumStats(season),
+    queryKey: podiumQueryKeys.stats(season),
   });
 
-export const usePodiumRankings = (limit = 100) =>
+export const usePodiumRankings = (season = CURRENT_SEASON_ID, limit = 100) =>
   useQuery({
-    queryFn: () => getPodiumRankings(limit),
-    queryKey: podiumQueryKeys.rankings(limit),
+    queryFn: () => getPodiumRankings(season, limit),
+    queryKey: podiumQueryKeys.rankings(season, limit),
   });
 
 const useInvalidatePodiumQueries = () => {
@@ -61,11 +69,11 @@ export const useCreatePodiumRecord = () => {
   });
 };
 
-export const useDeletePodiumRecords = () => {
+export const useDeletePodiumRecords = (season = CURRENT_SEASON_ID) => {
   const invalidatePodiumQueries = useInvalidatePodiumQueries();
 
   return useMutation({
-    mutationFn: deletePodiumRecords,
+    mutationFn: () => deletePodiumRecords(season),
     onSuccess: invalidatePodiumQueries,
   });
 };

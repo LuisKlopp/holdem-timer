@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { getPodiumApiErrorMessage } from "@/api";
+import { CURRENT_SEASON } from "@/constants";
 import {
   useCreatePodiumRecord,
   useDeletePodiumRecords,
@@ -12,6 +13,7 @@ import {
   usePodiumStats,
   useRecentPodiumRecords,
 } from "@/hooks";
+import { getPodiumRankRows } from "@/lib";
 
 type PodiumForm = {
   firstPlace: string;
@@ -59,12 +61,12 @@ export default function PodiumPage() {
   const [form, setForm] = useState<PodiumForm>(INITIAL_FORM);
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
-  const recordsQuery = usePodiumRecords(1, 20);
-  const recentRecordsQuery = useRecentPodiumRecords(5);
-  const statsQuery = usePodiumStats();
-  const rankingsQuery = usePodiumRankings(100);
+  const recordsQuery = usePodiumRecords(CURRENT_SEASON.id, 1, 20);
+  const recentRecordsQuery = useRecentPodiumRecords(CURRENT_SEASON.id, 5);
+  const statsQuery = usePodiumStats(CURRENT_SEASON.id);
+  const rankingsQuery = usePodiumRankings(CURRENT_SEASON.id, 100);
   const createRecordMutation = useCreatePodiumRecord();
-  const deleteRecordsMutation = useDeletePodiumRecords();
+  const deleteRecordsMutation = useDeletePodiumRecords(CURRENT_SEASON.id);
 
   useEffect(() => {
     if (!isWinnerModalOpen) {
@@ -88,7 +90,10 @@ export default function PodiumPage() {
     setMutationError(null);
 
     try {
-      await createRecordMutation.mutateAsync(form);
+      await createRecordMutation.mutateAsync({
+        ...form,
+        season: CURRENT_SEASON.id,
+      });
       setForm(INITIAL_FORM);
     } catch (error) {
       setMutationError(
@@ -103,7 +108,7 @@ export default function PodiumPage() {
 
   const handleReset = async () => {
     const shouldReset = window.confirm(
-      "누적된 경기 기록이 모두 삭제됩니다. 계속하시겠습니까?"
+      `${CURRENT_SEASON.label} 경기 기록이 모두 삭제됩니다. 계속하시겠습니까?`
     );
 
     if (!shouldReset) {
@@ -134,31 +139,7 @@ export default function PodiumPage() {
       })
     : null;
   const topLeaders = rankings.slice(0, 2);
-  const winnerRankRows = rankings.reduce<
-    {
-      names: string[];
-      rank: number;
-      rankLabel: string;
-      wins: number;
-    }[]
-  >((rows, winner) => {
-    if (rows.some((row) => row.wins === winner.wins)) {
-      return rows;
-    }
-
-    const tiedNames = rankings
-      .filter((leader) => leader.wins === winner.wins)
-      .map((leader) => leader.name);
-
-    rows.push({
-      names: tiedNames,
-      rank: rows.length + 1,
-      rankLabel: `${rows.length + 1}위`,
-      wins: winner.wins,
-    });
-
-    return rows;
-  }, []);
+  const winnerRankRows = getPodiumRankRows(rankings);
   const queryError =
     recordsQuery.error ??
     recentRecordsQuery.error ??
@@ -185,10 +166,10 @@ export default function PodiumPage() {
               Podium Entry
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[0.08em] text-white sm:text-4xl">
-              1등 / 2등 닉네임 입력
+              {CURRENT_SEASON.label} 1등 / 2등 입력
             </h1>
             <p className="mt-2 text-sm text-white/55 sm:text-base">
-              게임이 끝날 때마다 서버에 경기 결과가 누적 저장됩니다.
+              게임이 끝날 때마다 현재 시즌 기록으로 누적 저장됩니다.
             </p>
           </div>
 
@@ -198,13 +179,19 @@ export default function PodiumPage() {
               onClick={() => setIsWinnerModalOpen(true)}
               type="button"
             >
-              전체 우승자 보기
+              {CURRENT_SEASON.label} 순위 보기
             </button>
             <Link
               className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10"
-              href="/"
+              href="/hall-of-fame"
             >
-              메인으로
+              명예의전당
+            </Link>
+            <Link
+              className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+              href="/elio-holdem-timer"
+            >
+              엘리오 타이머
             </Link>
           </div>
         </header>
@@ -344,7 +331,7 @@ export default function PodiumPage() {
               Winner Ranking
             </p>
             <h2 className="mt-2 text-xl font-semibold text-white">
-              시즌1 우승횟수 1위, 2위
+              {CURRENT_SEASON.label} 우승횟수 1위, 2위
             </h2>
 
             <div className="mt-5 grid gap-4">
@@ -454,13 +441,13 @@ export default function PodiumPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/65 uppercase">
-                  Winner List
+                  Current Ranking
                 </p>
                 <h2
                   className="mt-2 text-2xl font-semibold text-white"
                   id="winner-modal-title"
                 >
-                  우승자 명단
+                  {CURRENT_SEASON.label} 순위
                 </h2>
               </div>
               <button
@@ -474,14 +461,10 @@ export default function PodiumPage() {
 
             <div className="mt-5 rounded-[1.25rem] border border-amber-200/24 bg-amber-200/10 px-4 py-3.5 sm:px-5">
               <p className="text-center text-2xl leading-tight font-bold text-amber-50 sm:text-3xl">
-                시즌 1
+                {CURRENT_SEASON.label}
               </p>
               <p className="mt-1 text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
-                (2026년 5월 ~ 8월)
-                <br />
-                1위 : 신세계 상품권 7만원
-                <br />
-                2위 : 신세계 상품권 3만원
+                {CURRENT_SEASON.period}
               </p>
             </div>
 

@@ -1,10 +1,13 @@
 import axios, { AxiosError } from "axios";
 
+import { CURRENT_SEASON_ID } from "@/constants";
+
 export type PodiumRecord = {
   id: string;
   firstPlace: string;
   secondPlace: string;
   createdAt: string;
+  season?: number;
 };
 
 export type PodiumStats = {
@@ -32,6 +35,7 @@ export type PaginatedPodiumRecords = {
 
 type CreatePodiumRecordRequest = {
   firstPlace: string;
+  season?: number;
   secondPlace: string;
 };
 
@@ -57,43 +61,55 @@ const requireApiUrl = () => {
   }
 };
 
-export const getPodiumRecords = async (page = 1, limit = 20) => {
+export const getPodiumRecords = async (
+  season = CURRENT_SEASON_ID,
+  page = 1,
+  limit = 20
+) => {
   requireApiUrl();
   const response = await podiumApi.get<PaginatedPodiumRecords>(
     "/podium-records",
     {
-      params: { limit, page },
+      params: { limit, page, season },
     }
   );
 
   return response.data;
 };
 
-export const getRecentPodiumRecords = async (limit = 5) => {
+export const getRecentPodiumRecords = async (
+  season = CURRENT_SEASON_ID,
+  limit = 5
+) => {
   requireApiUrl();
   const response = await podiumApi.get<PodiumRecord[]>(
     "/podium-records/recent",
     {
-      params: { limit },
+      params: { limit, season },
     }
   );
 
   return response.data;
 };
 
-export const getPodiumStats = async () => {
+export const getPodiumStats = async (season = CURRENT_SEASON_ID) => {
   requireApiUrl();
-  const response = await podiumApi.get<PodiumStats>("/podium-records/stats");
+  const response = await podiumApi.get<PodiumStats>("/podium-records/stats", {
+    params: { season },
+  });
 
   return response.data;
 };
 
-export const getPodiumRankings = async (limit = 100) => {
+export const getPodiumRankings = async (
+  season = CURRENT_SEASON_ID,
+  limit = 100
+) => {
   requireApiUrl();
   const response = await podiumApi.get<PodiumRanking[]>(
     "/podium-records/rankings",
     {
-      params: { limit },
+      params: { limit, season },
     }
   );
 
@@ -112,10 +128,14 @@ export const createPodiumRecord = async (
   return response.data;
 };
 
-export const deletePodiumRecords = async () => {
+export const deletePodiumRecords = async (season = CURRENT_SEASON_ID) => {
   requireApiUrl();
-  const response =
-    await podiumApi.delete<DeletePodiumRecordsResponse>("/podium-records");
+  const response = await podiumApi.delete<DeletePodiumRecordsResponse>(
+    "/podium-records",
+    {
+      params: { season },
+    }
+  );
 
   return response.data;
 };

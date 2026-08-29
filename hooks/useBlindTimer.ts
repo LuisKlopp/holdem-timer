@@ -2,10 +2,10 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 
-import { blindLevels } from "@/lib/blindLevels";
+import { type BlindLevel, blindLevels } from "@/lib/blindLevels";
 
 const TICK_INTERVAL_MS = 250;
-const ALERT_VOLUME_GAIN = 1.1;
+const ALERT_VOLUME_GAIN = 1.6;
 
 type TimerState = {
   currentLevelIndex: number;
@@ -20,14 +20,15 @@ type TimerState = {
   isHydrated: boolean;
 };
 
-const clampLevelIndex = (levelIndex: number) =>
-  Math.min(Math.max(levelIndex, 0), blindLevels.length - 1);
+const clampLevelIndex = (levels: BlindLevel[], levelIndex: number) =>
+  Math.min(Math.max(levelIndex, 0), levels.length - 1);
 
 const getLevelDurationMs = (
+  levels: BlindLevel[],
   levelIndex: number,
   levelDurationOverrideSeconds: number | null,
 ) => {
-  const level = blindLevels[clampLevelIndex(levelIndex)];
+  const level = levels[clampLevelIndex(levels, levelIndex)];
   const durationSeconds =
     level.isBreak || levelDurationOverrideSeconds === null
       ? level.duration
@@ -57,9 +58,9 @@ const formatElapsedTime = (timeMs: number) => {
     .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
-const createInitialState = (): TimerState => ({
+const createInitialState = (levels: BlindLevel[]): TimerState => ({
   currentLevelIndex: 0,
-  remainingTime: getLevelDurationMs(0, null),
+  remainingTime: getLevelDurationMs(levels, 0, null),
   isRunning: false,
   endTime: null,
   runStartedAt: null,
@@ -71,18 +72,20 @@ const createInitialState = (): TimerState => ({
 });
 
 const resolveRunningState = (
+  levels: BlindLevel[],
   currentLevelIndex: number,
   endTime: number,
   levelDurationOverrideSeconds: number | null,
   now: number,
 ) => {
-  let nextLevelIndex = clampLevelIndex(currentLevelIndex);
+  let nextLevelIndex = clampLevelIndex(levels, currentLevelIndex);
   let nextEndTime = endTime;
   let didAdvance = false;
 
-  while (nextLevelIndex < blindLevels.length - 1 && now >= nextEndTime) {
+  while (nextLevelIndex < levels.length - 1 && now >= nextEndTime) {
     nextLevelIndex += 1;
     nextEndTime += getLevelDurationMs(
+      levels,
       nextLevelIndex,
       levelDurationOverrideSeconds,
     );
@@ -108,8 +111,10 @@ const resolveRunningState = (
   };
 };
 
-export const useBlindTimer = () => {
-  const [state, setState] = useState<TimerState>(createInitialState);
+export const useBlindTimer = (levels = blindLevels) => {
+  const [state, setState] = useState<TimerState>(() =>
+    createInitialState(levels),
+  );
   const audioContextRef = useRef<AudioContext | null>(null);
   const previousLevelIndexRef = useRef<number | null>(null);
 
@@ -157,85 +162,113 @@ export const useBlindTimer = () => {
     const now = audioContext.currentTime;
     const masterGain = audioContext.createGain();
     const compressor = audioContext.createDynamicsCompressor();
-    const toneFilter = audioContext.createBiquadFilter();
-    const repeatCount = 3;
-    const repeatInterval = 0.78;
-    const totalDuration = repeatCount * repeatInterval + 0.8;
+    const shimmerFilter = audioContext.createBiquadFilter();
+    const transientFilter = audioContext.createBiquadFilter();
+    const notePattern = [
+      { frequency: 987.77, startOffset: 0, duration: 0.18 },
+      { frequency: 1244.51, startOffset: 0.13, duration: 0.2 },
+      { frequency: 1479.98, startOffset: 0.27, duration: 0.22 },
+      { frequency: 1975.53, startOffset: 0.48, duration: 0.34 },
+    ];
+    const totalDuration = 1.05;
 
     masterGain.gain.setValueAtTime(0.0001, now);
     masterGain.gain.linearRampToValueAtTime(
-      0.24 * ALERT_VOLUME_GAIN,
-      now + 0.04,
+      0.28 * ALERT_VOLUME_GAIN,
+      now + 0.014,
     );
     masterGain.gain.exponentialRampToValueAtTime(
       0.12 * ALERT_VOLUME_GAIN,
-      now + totalDuration * 0.55,
+      now + totalDuration * 0.68,
     );
     masterGain.gain.exponentialRampToValueAtTime(0.0001, now + totalDuration);
 
-    compressor.threshold.setValueAtTime(-18, now);
-    compressor.knee.setValueAtTime(16, now);
-    compressor.ratio.setValueAtTime(2.4, now);
-    compressor.attack.setValueAtTime(0.01, now);
-    compressor.release.setValueAtTime(0.28, now);
+    compressor.threshold.setValueAtTime(-17, now);
+    compressor.knee.setValueAtTime(14, now);
+    compressor.ratio.setValueAtTime(2.8, now);
+    compressor.attack.setValueAtTime(0.006, now);
+    compressor.release.setValueAtTime(0.18, now);
 
-    toneFilter.type = "lowpass";
-    toneFilter.frequency.setValueAtTime(2400, now);
-    toneFilter.Q.setValueAtTime(0.7, now);
+    shimmerFilter.type = "highpass";
+    shimmerFilter.frequency.setValueAtTime(620, now);
+    shimmerFilter.Q.setValueAtTime(0.72, now);
 
-    masterGain.connect(toneFilter);
-    toneFilter.connect(compressor);
+    transientFilter.type = "bandpass";
+    transientFilter.frequency.setValueAtTime(2600, now);
+    transientFilter.Q.setValueAtTime(2.2, now);
+
+    masterGain.connect(shimmerFilter);
+    shimmerFilter.connect(compressor);
     compressor.connect(audioContext.destination);
 
-    const createChimeNote = (
+    const createGlassNote = (
       startAt: number,
       frequency: number,
       duration: number,
-      detune = 0,
     ) => {
       const bodyOscillator = audioContext.createOscillator();
-      const harmonyOscillator = audioContext.createOscillator();
-      const shimmerOscillator = audioContext.createOscillator();
+      const shineOscillator = audioContext.createOscillator();
       const noteGain = audioContext.createGain();
 
-      bodyOscillator.type = "sine";
+      bodyOscillator.type = "triangle";
       bodyOscillator.frequency.setValueAtTime(frequency, startAt);
-      bodyOscillator.detune.setValueAtTime(detune, startAt);
+      bodyOscillator.frequency.exponentialRampToValueAtTime(
+        frequency * 1.035,
+        startAt + duration * 0.42,
+      );
 
-      harmonyOscillator.type = "triangle";
-      harmonyOscillator.frequency.setValueAtTime(frequency * 1.5, startAt);
-      harmonyOscillator.detune.setValueAtTime(detune - 4, startAt);
-
-      shimmerOscillator.type = "sine";
-      shimmerOscillator.frequency.setValueAtTime(frequency * 2, startAt);
-      shimmerOscillator.detune.setValueAtTime(detune + 8, startAt);
+      shineOscillator.type = "sine";
+      shineOscillator.frequency.setValueAtTime(frequency * 2.01, startAt);
+      shineOscillator.detune.setValueAtTime(7, startAt);
 
       noteGain.gain.setValueAtTime(0.0001, startAt);
-      noteGain.gain.linearRampToValueAtTime(0.42, startAt + 0.03);
-      noteGain.gain.exponentialRampToValueAtTime(0.16, startAt + duration * 0.45);
+      noteGain.gain.linearRampToValueAtTime(0.34, startAt + 0.01);
+      noteGain.gain.exponentialRampToValueAtTime(0.11, startAt + duration * 0.48);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
 
       bodyOscillator.connect(noteGain);
-      harmonyOscillator.connect(noteGain);
-      shimmerOscillator.connect(noteGain);
+      shineOscillator.connect(noteGain);
       noteGain.connect(masterGain);
 
       bodyOscillator.start(startAt);
-      harmonyOscillator.start(startAt);
-      shimmerOscillator.start(startAt + 0.02);
+      shineOscillator.start(startAt + 0.004);
       bodyOscillator.stop(startAt + duration);
-      harmonyOscillator.stop(startAt + duration * 0.92);
-      shimmerOscillator.stop(startAt + duration * 0.8);
+      shineOscillator.stop(startAt + duration * 0.82);
     };
 
-    const createAlertPhrase = (startAt: number) => {
-      createChimeNote(startAt, 783.99, 0.42);
-      createChimeNote(startAt + 0.22, 987.77, 0.52, 5);
+    const createTransient = (startAt: number) => {
+      const sampleRate = audioContext.sampleRate;
+      const buffer = audioContext.createBuffer(1, sampleRate * 0.025, sampleRate);
+      const output = buffer.getChannelData(0);
+
+      for (let index = 0; index < output.length; index += 1) {
+        output[index] = (Math.random() * 2 - 1) * (1 - index / output.length);
+      }
+
+      const noise = audioContext.createBufferSource();
+      const noiseGain = audioContext.createGain();
+
+      noise.buffer = buffer;
+      noiseGain.gain.setValueAtTime(0.16, startAt);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.025);
+
+      noise.connect(noiseGain);
+      noiseGain.connect(transientFilter);
+      transientFilter.connect(compressor);
+
+      noise.start(startAt);
+      noise.stop(startAt + 0.025);
     };
 
-    for (let index = 0; index < repeatCount; index += 1) {
-      createAlertPhrase(now + index * repeatInterval);
-    }
+    notePattern.forEach(({ duration, frequency, startOffset }, index) => {
+      const startAt = now + startOffset;
+
+      createGlassNote(startAt, frequency, duration);
+
+      if (index < 3) {
+        createTransient(startAt);
+      }
+    });
   });
 
   useEffect(() => {
@@ -252,6 +285,7 @@ export const useBlindTimer = () => {
         }
 
         const resolvedState = resolveRunningState(
+          levels,
           previousState.currentLevelIndex,
           previousState.endTime,
           previousState.levelDurationOverrideSeconds,
@@ -297,7 +331,7 @@ export const useBlindTimer = () => {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [state.isRunning]);
+  }, [levels, state.isRunning]);
 
   useEffect(() => {
     const syncWithClock = () => {
@@ -307,6 +341,7 @@ export const useBlindTimer = () => {
         }
 
         const resolvedState = resolveRunningState(
+          levels,
           previousState.currentLevelIndex,
           previousState.endTime,
           previousState.levelDurationOverrideSeconds,
@@ -330,7 +365,7 @@ export const useBlindTimer = () => {
       document.removeEventListener("visibilitychange", syncWithClock);
       window.removeEventListener("focus", syncWithClock);
     };
-  }, []);
+  }, [levels]);
 
   useEffect(() => {
     const previousLevelIndex = previousLevelIndexRef.current;
@@ -349,8 +384,9 @@ export const useBlindTimer = () => {
     const now = Date.now();
 
     setState((previousState) => {
-      const nextLevelIndex = clampLevelIndex(targetLevelIndex);
+      const nextLevelIndex = clampLevelIndex(levels, targetLevelIndex);
       const nextDuration = getLevelDurationMs(
+        levels,
         nextLevelIndex,
         previousState.levelDurationOverrideSeconds,
       );
@@ -381,7 +417,7 @@ export const useBlindTimer = () => {
     const safeSeconds = Number.isFinite(remainingSeconds)
       ? Math.max(0, Math.floor(remainingSeconds))
       : 0;
-    const nextLevelIndex = clampLevelIndex(safeLevelNumber - 1);
+    const nextLevelIndex = clampLevelIndex(levels, safeLevelNumber - 1);
     const nextRemainingTime = safeSeconds * 1000;
     const now = Date.now();
 
@@ -407,7 +443,7 @@ export const useBlindTimer = () => {
         return previousState;
       }
 
-      const currentLevel = blindLevels[previousState.currentLevelIndex];
+      const currentLevel = levels[previousState.currentLevelIndex];
 
       if (currentLevel.isBreak) {
         return {
@@ -417,10 +453,12 @@ export const useBlindTimer = () => {
       }
 
       const previousDuration = getLevelDurationMs(
+        levels,
         previousState.currentLevelIndex,
         previousState.levelDurationOverrideSeconds,
       );
       const nextDuration = getLevelDurationMs(
+        levels,
         previousState.currentLevelIndex,
         nextLevelDurationSeconds,
       );
@@ -451,6 +489,7 @@ export const useBlindTimer = () => {
         previousState.remainingTime > 0
           ? previousState.remainingTime
           : getLevelDurationMs(
+              levels,
               previousState.currentLevelIndex,
               previousState.levelDurationOverrideSeconds,
             );
@@ -488,7 +527,7 @@ export const useBlindTimer = () => {
 
   const reset = useEffectEvent(() => {
     setState((previousState) => ({
-      ...createInitialState(),
+      ...createInitialState(levels),
       soundEnabled: previousState.soundEnabled,
       animationKey: previousState.animationKey + 1,
     }));
@@ -503,13 +542,14 @@ export const useBlindTimer = () => {
     }));
   });
 
-  const currentLevel = blindLevels[state.currentLevelIndex];
+  const currentLevel = levels[state.currentLevelIndex];
   const currentLevelDurationSeconds =
     getLevelDurationMs(
+      levels,
       state.currentLevelIndex,
       state.levelDurationOverrideSeconds,
     ) / 1000;
-  const nextLevels = blindLevels.slice(
+  const nextLevels = levels.slice(
     state.currentLevelIndex + 1,
     state.currentLevelIndex + 3,
   );
@@ -520,7 +560,7 @@ export const useBlindTimer = () => {
       : 0);
 
   return {
-    blindLevels,
+    blindLevels: levels,
     currentLevel,
     currentLevelIndex: state.currentLevelIndex,
     currentLevelNumber: currentLevel.level,
@@ -535,7 +575,7 @@ export const useBlindTimer = () => {
     totalElapsedTime: formatElapsedTime(totalElapsedMs),
     soundEnabled: state.soundEnabled,
     animationKey: state.animationKey,
-    totalLevels: blindLevels.length,
+    totalLevels: levels.length,
     goToNextLevel: () => moveToLevel(state.currentLevelIndex + 1),
     goToPreviousLevel: () => moveToLevel(state.currentLevelIndex - 1),
     jumpTo,
