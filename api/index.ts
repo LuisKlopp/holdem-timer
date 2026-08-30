@@ -1,4 +1,8 @@
 export {
+  getHoldemMembers,
+  type HoldemMember,
+} from "./holdemMembers";
+export {
   createPodiumRecord,
   deletePodiumRecords,
   getPodiumApiErrorMessage,

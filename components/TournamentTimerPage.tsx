@@ -23,6 +23,7 @@ type GameMembers = {
 
 type TournamentTimerPageProps = {
   blindLevels?: BlindLevel[];
+  memberManagementHref?: string;
   storageKey: string;
   title: string;
   podiumSeason?: {
@@ -41,6 +42,7 @@ const createMemberInputs = (members: string[] = []) => {
 
 export function TournamentTimerPage({
   blindLevels,
+  memberManagementHref,
   podiumSeason,
   storageKey,
   title,
@@ -208,21 +210,39 @@ export function TournamentTimerPage({
             {podiumSeason ? (
               <>
                 <Link
-                  className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+                  className="btn-press-in hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10 mdl:inline-flex"
                   href="/podium"
                 >
                   {podiumSeason.label} 기록 입력
                 </Link>
                 <Link
-                  className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+                  className="btn-press-in hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10 mdl:inline-flex"
                   href="/hall-of-fame"
                 >
                   명예의전당
                 </Link>
+                <Link
+                  className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:hidden"
+                  href={memberManagementHref ?? "/elio-holdem-timer/member-management"}
+                >
+                  멤버 관리
+                </Link>
               </>
             ) : null}
+            {!podiumSeason && memberManagementHref ? (
+              <Link
+                className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:hidden"
+                href={memberManagementHref}
+              >
+                멤버 관리
+              </Link>
+            ) : null}
             <button
-              className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
+              className={
+                podiumSeason || memberManagementHref
+                  ? "btn-press-in hidden items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:inline-flex"
+                  : "btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
+              }
               type="button"
               onClick={openMemberModal}
             >

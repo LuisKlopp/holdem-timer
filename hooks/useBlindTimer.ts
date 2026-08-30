@@ -5,7 +5,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { type BlindLevel, blindLevels } from "@/lib/blindLevels";
 
 const TICK_INTERVAL_MS = 250;
-const ALERT_VOLUME_GAIN = 1.6;
+const ALERT_VOLUME_GAIN = 4.5;
 
 type TimerState = {
   currentLevelIndex: number;
@@ -249,7 +249,7 @@ export const useBlindTimer = (levels = blindLevels) => {
       const noiseGain = audioContext.createGain();
 
       noise.buffer = buffer;
-      noiseGain.gain.setValueAtTime(0.16, startAt);
+      noiseGain.gain.setValueAtTime(0.28, startAt);
       noiseGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.025);
 
       noise.connect(noiseGain);
@@ -375,6 +375,9 @@ export const useBlindTimer = (levels = blindLevels) => {
       previousLevelIndex !== state.currentLevelIndex
     ) {
       void playAlertSound();
+      window.setTimeout(() => {
+        void playAlertSound();
+      }, 1200);
     }
 
     previousLevelIndexRef.current = state.currentLevelIndex;
