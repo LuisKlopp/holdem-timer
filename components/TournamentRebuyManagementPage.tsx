@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Minus, Plus, Users } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import type { TournamentGameStore } from "@/store";
 
@@ -18,6 +19,7 @@ export function TournamentRebuyManagementPage({
   timerLabel,
   useGameStore,
 }: TournamentRebuyManagementPageProps) {
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const clearGame = useGameStore((state) => state.clearGame);
   const decrementRebuy = useGameStore((state) => state.decrementRebuy);
   const incrementRebuy = useGameStore((state) => state.incrementRebuy);
@@ -28,6 +30,11 @@ export function TournamentRebuyManagementPage({
     (total, member) => total + (rebuyCounts[member] ?? 0),
     0
   );
+
+  const handleConfirmReset = () => {
+    clearGame();
+    setIsResetConfirmOpen(false);
+  };
 
   return (
     <main className="relative min-h-svh overflow-x-hidden bg-[#050816] px-4 py-5 text-white">
@@ -137,14 +144,56 @@ export function TournamentRebuyManagementPage({
 
         {selectedMembers.length > 0 ? (
           <button
-            className="btn-press-in mt-auto min-h-12 rounded-full border border-rose-300/25 bg-rose-300/10 px-4 text-sm font-bold text-rose-100 transition hover:bg-rose-300/16"
+            className="btn-press-in mt-auto min-h-10 self-start rounded-full border border-rose-300/25 bg-rose-300/10 px-4 text-xs font-bold text-rose-100 transition hover:bg-rose-300/16"
             type="button"
-            onClick={clearGame}
+            onClick={() => setIsResetConfirmOpen(true)}
           >
             게임 초기화
           </button>
         ) : null}
       </div>
+
+      {isResetConfirmOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/72 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-confirm-title"
+          onMouseDown={() => setIsResetConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-[1.5rem] border border-white/12 bg-[#0b0d18] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <p
+              className="text-xl font-bold text-rose-100"
+              id="reset-confirm-title"
+            >
+              게임을 초기화할까요?
+            </p>
+            <p className="mt-2 text-sm leading-6 font-medium text-white/55">
+              선택된 멤버와 리바인 기록이 모두 삭제됩니다.
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                className="btn-press-in min-h-11 rounded-full border border-white/10 bg-white/6 px-4 text-sm font-bold text-white/75 transition hover:bg-white/12"
+                type="button"
+                onClick={() => setIsResetConfirmOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className="btn-press-in min-h-11 rounded-full bg-rose-200 px-4 text-sm font-black text-rose-950 transition hover:bg-rose-100"
+                type="button"
+                onClick={handleConfirmReset}
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
