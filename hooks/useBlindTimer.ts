@@ -6,6 +6,7 @@ import { type BlindLevel, blindLevels } from "@/lib/blindLevels";
 
 const TICK_INTERVAL_MS = 250;
 const ALERT_VOLUME_GAIN = 4.5;
+const DEFAULT_ALERT_VOLUME = 80;
 
 type TimerState = {
   currentLevelIndex: number;
@@ -16,6 +17,7 @@ type TimerState = {
   elapsedBeforeRun: number;
   levelDurationOverrideSeconds: number | null;
   soundEnabled: boolean;
+  alertVolume: number;
   animationKey: number;
   isHydrated: boolean;
 };
@@ -67,6 +69,7 @@ const createInitialState = (levels: BlindLevel[]): TimerState => ({
   elapsedBeforeRun: 0,
   levelDurationOverrideSeconds: null,
   soundEnabled: true,
+  alertVolume: DEFAULT_ALERT_VOLUME,
   animationKey: 0,
   isHydrated: true,
 });
@@ -160,6 +163,7 @@ export const useBlindTimer = (levels = blindLevels) => {
     }
 
     const now = audioContext.currentTime;
+    const volumeScale = state.alertVolume / 100;
     const masterGain = audioContext.createGain();
     const compressor = audioContext.createDynamicsCompressor();
     const shimmerFilter = audioContext.createBiquadFilter();
@@ -174,11 +178,11 @@ export const useBlindTimer = (levels = blindLevels) => {
 
     masterGain.gain.setValueAtTime(0.0001, now);
     masterGain.gain.linearRampToValueAtTime(
-      0.28 * ALERT_VOLUME_GAIN,
+      0.28 * ALERT_VOLUME_GAIN * volumeScale,
       now + 0.014,
     );
     masterGain.gain.exponentialRampToValueAtTime(
-      0.12 * ALERT_VOLUME_GAIN,
+      0.12 * ALERT_VOLUME_GAIN * volumeScale,
       now + totalDuration * 0.68,
     );
     masterGain.gain.exponentialRampToValueAtTime(0.0001, now + totalDuration);
@@ -532,6 +536,7 @@ export const useBlindTimer = (levels = blindLevels) => {
     setState((previousState) => ({
       ...createInitialState(levels),
       soundEnabled: previousState.soundEnabled,
+      alertVolume: previousState.alertVolume,
       animationKey: previousState.animationKey + 1,
     }));
   });
@@ -542,6 +547,18 @@ export const useBlindTimer = (levels = blindLevels) => {
     setState((previousState) => ({
       ...previousState,
       soundEnabled: !previousState.soundEnabled,
+    }));
+  });
+
+  const setAlertVolume = useEffectEvent((volume: number) => {
+    const safeVolume = Number.isFinite(volume)
+      ? Math.min(Math.max(Math.round(volume), 10), 100)
+      : DEFAULT_ALERT_VOLUME;
+
+    setState((previousState) => ({
+      ...previousState,
+      alertVolume: safeVolume,
+      soundEnabled: safeVolume > 0 ? true : previousState.soundEnabled,
     }));
   });
 
@@ -576,6 +593,7 @@ export const useBlindTimer = (levels = blindLevels) => {
     nextLevels,
     remainingTime: state.remainingTime,
     totalElapsedTime: formatElapsedTime(totalElapsedMs),
+    alertVolume: state.alertVolume,
     soundEnabled: state.soundEnabled,
     animationKey: state.animationKey,
     totalLevels: levels.length,
@@ -584,6 +602,7 @@ export const useBlindTimer = (levels = blindLevels) => {
     jumpTo,
     pause,
     reset,
+    setAlertVolume,
     setLevelDuration,
     start,
     toggleSound,
