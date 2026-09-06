@@ -183,7 +183,7 @@ export default function PodiumPage() {
               Podium Entry
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[0.08em] text-white sm:text-4xl">
-              {CURRENT_SEASON.label} 1등 / 2등 입력
+              {CURRENT_SEASON.label}
             </h1>
             <p className="mt-2 text-sm text-white/55 sm:text-base">
               게임이 끝날 때마다 현재 시즌 기록으로 누적 저장됩니다.
