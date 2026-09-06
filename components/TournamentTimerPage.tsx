@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { getPodiumApiErrorMessage } from "@/api";
@@ -82,12 +83,6 @@ export function TournamentTimerPage({
                   {podiumSeason.label} 기록 입력
                 </Link>
                 <Link
-                  className="btn-press-in hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10 mdl:inline-flex"
-                  href="/hall-of-fame"
-                >
-                  명예의전당
-                </Link>
-                <Link
                   className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:hidden"
                   href={memberManagementHref ?? "/elio-holdem-timer/member-management"}
                 >
@@ -146,15 +141,25 @@ export function TournamentTimerPage({
 
               <div className="min-w-0">
                 <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-                  <span
+                  <Image
                     aria-hidden="true"
-                    className="pointer-events-none absolute top-0 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-6xl leading-none drop-shadow-[0_10px_22px_rgba(0,0,0,0.45)] mdl:block"
-                  >
-                    👑
-                  </span>
+                    className="pointer-events-none absolute top-0 left-1/2 z-10 hidden h-18 w-auto -translate-x-1/2 -translate-y-1/2 mdl:block"
+                    src="/ranking/crown-gold.png"
+                    alt=""
+                    width={96}
+                    height={87}
+                  />
                   <p className="text-lg font-semibold whitespace-nowrap text-amber-200 sm:text-xl">
-                    <span className="mdl:hidden">
-                      {podiumSeason.label} 최다 우승자 👑
+                    <span className="inline-flex items-center justify-center gap-1.5 mdl:hidden">
+                      {podiumSeason.label} 최다 우승자
+                      <Image
+                        aria-hidden="true"
+                        className="h-6 w-auto"
+                        src="/ranking/crown-gold.png"
+                        alt=""
+                        width={96}
+                        height={87}
+                      />
                     </span>
                     <span className="hidden mdl:inline">
                       {podiumSeason.label} 최다 우승자

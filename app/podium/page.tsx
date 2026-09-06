@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 
@@ -25,6 +27,9 @@ const INITIAL_FORM: PodiumForm = {
   secondPlace: "",
 };
 
+const NICKNAME_CROWN_CLASS_NAME =
+  "pointer-events-none absolute -top-4 -right-2.5 h-6.5 w-auto rotate-[27deg]";
+
 const getRankTextClassName = (rank: number) => {
   if (rank === 1) {
     return "text-amber-200";
@@ -43,18 +48,30 @@ const getRankTextClassName = (rank: number) => {
 
 const getNicknameChipClassName = (rank: number) => {
   if (rank === 1) {
-    return "border-amber-200/45 bg-amber-200/18 text-amber-50 shadow-[0_0_18px_rgba(251,191,36,0.16)]";
+    return "border-amber-200/45 bg-amber-200/18 text-amber-50";
   }
 
   if (rank === 2) {
-    return "border-slate-100/35 bg-slate-100/14 text-slate-50 shadow-[0_0_18px_rgba(226,232,240,0.12)]";
+    return "border-slate-100/35 bg-slate-100/14 text-slate-50";
   }
 
   if (rank === 3) {
-    return "border-orange-300/40 bg-orange-300/14 text-orange-50 shadow-[0_0_18px_rgba(251,146,60,0.12)]";
+    return "border-orange-300/40 bg-orange-300/14 text-orange-50";
   }
 
   return "border-white/10 bg-white/8 text-white";
+};
+
+const getNicknameCrownSrc = (rank: number) => {
+  if (rank === 1) {
+    return "/ranking/crown-gold.png";
+  }
+
+  if (rank === 2) {
+    return "/ranking/crown-silver.png";
+  }
+
+  return null;
 };
 
 export default function PodiumPage() {
@@ -182,16 +199,11 @@ export default function PodiumPage() {
               {CURRENT_SEASON.label} 순위 보기
             </button>
             <Link
-              className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10"
-              href="/hall-of-fame"
-            >
-              명예의전당
-            </Link>
-            <Link
-              className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+              className="btn-press-in inline-flex size-10 items-center justify-center rounded-full border border-white/12 bg-white/6 text-white/85 transition hover:bg-white/10"
               href="/elio-holdem-timer"
+              aria-label="엘리오 타이머로 돌아가기"
             >
-              엘리오 타이머
+              <ArrowLeft size={18} />
             </Link>
           </div>
         </header>
@@ -486,14 +498,28 @@ export default function PodiumPage() {
                         {winner.rankLabel}
                       </span>
                       <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                        {winner.names.map((name) => (
-                          <span
-                            className={`max-w-full rounded-full border px-2.5 py-1 text-base font-semibold break-words ${getNicknameChipClassName(winner.rank)}`}
-                            key={name}
-                          >
-                            {name}
-                          </span>
-                        ))}
+                        {winner.names.map((name) => {
+                          const crownSrc = getNicknameCrownSrc(winner.rank);
+
+                          return (
+                            <span
+                              className={`relative inline-flex max-w-full items-center justify-center rounded-full border px-2.5 py-1 text-base font-semibold break-words ${getNicknameChipClassName(winner.rank)}`}
+                              key={name}
+                            >
+                              {crownSrc ? (
+                                <Image
+                                  aria-hidden="true"
+                                  className={NICKNAME_CROWN_CLASS_NAME}
+                                  src={crownSrc}
+                                  alt=""
+                                  width={96}
+                                  height={87}
+                                />
+                              ) : null}
+                              {name}
+                            </span>
+                          );
+                        })}
                       </div>
                       <span className="shrink-0 rounded-full bg-amber-200/12 px-2.5 py-1.5 text-xs font-bold text-amber-100">
                         {winner.wins}회 우승
