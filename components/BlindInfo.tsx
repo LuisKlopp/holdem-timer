@@ -3,6 +3,7 @@ import type { BlindLevel } from "@/lib/blindLevels";
 type BlindInfoProps = {
   animationKey: number;
   currentLevel: BlindLevel;
+  message?: string;
 };
 
 const formatBlind = (value: number) => value.toLocaleString("en-US");
@@ -10,6 +11,7 @@ const formatBlind = (value: number) => value.toLocaleString("en-US");
 export default function BlindInfo({
   animationKey,
   currentLevel,
+  message,
 }: BlindInfoProps) {
   return (
     <section
@@ -17,6 +19,11 @@ export default function BlindInfo({
       className="animate-level-flash h-full w-full"
     >
       <div className="mdl:min-h-60 mdl:py-3.5 flex h-full min-h-39 flex-col justify-center rounded-[1.5rem] border border-white/8 bg-black/18 px-4 py-4 text-center backdrop-blur-sm">
+        {message ? (
+          <p className="mb-3 text-xl font-semibold text-amber-100/85 sm:text-2xl">
+            {message}
+          </p>
+        ) : null}
         <p className="text-base font-semibold tracking-[0.18em] text-white/45 uppercase sm:text-lg">
           Blinds
         </p>

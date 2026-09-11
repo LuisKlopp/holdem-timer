@@ -14,6 +14,7 @@ import LevelInfo from "./LevelInfo";
 import TimerDisplay from "./TimerDisplay";
 
 type TournamentTimerPageProps = {
+  blindMessage?: string;
   blindLevels?: BlindLevel[];
   memberManagementHref?: string;
   title: string;
@@ -24,6 +25,7 @@ type TournamentTimerPageProps = {
 };
 
 export function TournamentTimerPage({
+  blindMessage,
   blindLevels,
   memberManagementHref,
   podiumSeason,
@@ -185,7 +187,11 @@ export function TournamentTimerPage({
             </p>
           ) : null}
 
-          <BlindInfo animationKey={animationKey} currentLevel={currentLevel} />
+          <BlindInfo
+            animationKey={animationKey}
+            currentLevel={currentLevel}
+            message={blindMessage}
+          />
         </div>
 
         <div>
