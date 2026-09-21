@@ -475,7 +475,7 @@ export default function PodiumPage() {
               <p className="text-center text-2xl leading-tight font-bold text-amber-50 sm:text-3xl">
                 {CURRENT_SEASON.label}
               </p>
-              <p className="mt-1 text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
+              <p className="mt-1 whitespace-pre-line text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
                 {CURRENT_SEASON.period}
               </p>
             </div>

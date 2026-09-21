@@ -14,7 +14,7 @@ export const HOLD_EM_SEASONS = [
   {
     id: 2,
     label: "시즌 2",
-    period: "진행 중",
+    period: "1등 - 신세계 상품권 10만원\n2등 - 신세계 상품권 5만원",
     prize: null,
     status: "active",
   },
