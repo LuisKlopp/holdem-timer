@@ -207,22 +207,22 @@ export function TournamentTimerPage({
   };
 
   return (
-    <main className="relative min-h-svh overflow-x-hidden bg-[#050816] px-3 text-white sm:px-4">
+    <main className="relative min-h-svh overflow-x-hidden bg-[#050816] px-2.5 text-white sm:px-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-1/2 h-136 w-136 -translate-x-1/2 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="absolute -bottom-48 -left-24 h-96 w-[24rem] rounded-full bg-red-500/10 blur-3xl" />
         <div className="absolute top-[20%] -right-20 h-80 w-[20rem] rounded-full bg-sky-400/10 blur-3xl" />
       </div>
 
-      <div className="mdl:gap-8 mdl:pt-7 relative mx-auto flex max-w-7xl flex-col gap-6 pt-6 pb-6 lg:gap-12 lg:pt-10 lg:pb-10">
-        <header className="flex flex-col gap-3.5">
-          <p className="mdl:text-left text-center text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-4xl">
+      <div className="mdl:gap-8 mdl:pt-7 relative mx-auto flex max-w-7xl flex-col gap-4 pt-4 pb-4 sm:gap-6 sm:pt-6 sm:pb-6 lg:gap-12 lg:pt-10 lg:pb-10">
+        <header className="flex flex-col gap-2.5 sm:gap-3.5">
+          <p className="mdl:text-left text-center text-[clamp(1.35rem,6.6vw,1.85rem)] leading-[1.15] font-semibold tracking-[0.04em] text-amber-200/65 uppercase sm:text-4xl sm:tracking-[0.08em]">
             {title}
           </p>
 
           <div className="mdl:justify-start flex flex-wrap justify-center gap-2">
             <Link
-              className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+              className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-3 py-1.5 text-xs font-semibold text-white/85 transition hover:bg-white/10 sm:px-4 sm:text-sm"
               href="/"
             >
               타이머 선택
@@ -236,7 +236,7 @@ export function TournamentTimerPage({
                   {podiumSeason.label} 기록 입력
                 </Link>
                 <Link
-                  className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
+                  className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/18 sm:px-4 sm:text-sm"
                   href={
                     memberManagementHref ??
                     "/elio-holdem-timer/member-management"
@@ -248,14 +248,14 @@ export function TournamentTimerPage({
             ) : null}
             {!podiumSeason && memberManagementHref ? (
               <Link
-                className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
+                className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/18 sm:px-4 sm:text-sm"
                 href={memberManagementHref}
               >
                 멤버 관리
               </Link>
             ) : null}
             <button
-              className="btn-press-in mdl:hidden inline-flex items-center justify-center gap-1.5 rounded-full border border-amber-200/35 bg-amber-200/14 px-4 py-1.5 text-sm font-bold text-amber-100 transition hover:bg-amber-200/20"
+              className="btn-press-in mdl:hidden inline-flex items-center justify-center gap-1 rounded-full border border-amber-200/35 bg-amber-200/14 px-3 py-1.5 text-xs font-bold text-amber-100 transition hover:bg-amber-200/20 sm:gap-1.5 sm:px-4 sm:text-sm"
               type="button"
               onClick={() => {
                 winnerCelebrationMutation.reset();
@@ -300,12 +300,12 @@ export function TournamentTimerPage({
           </div>
         ) : null}
 
-        <div className="mdl:gap-9 flex flex-col gap-7 lg:gap-14">
+        <div className="mdl:gap-9 flex flex-col gap-4 sm:gap-7 lg:gap-14">
           <section
             className={
               hasPodiumStats
-                ? "mdl:grid-cols-[minmax(0,1.5fr)_minmax(27rem,1.55fr)] grid gap-3.5 lg:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)]"
-                : "grid gap-3.5"
+                ? "mdl:grid-cols-[minmax(0,1.5fr)_minmax(27rem,1.55fr)] grid gap-2.5 sm:gap-3.5 lg:grid-cols-[minmax(0,2.18fr)_minmax(0,1.44fr)]"
+                : "grid gap-2.5 sm:gap-3.5"
             }
           >
             <div className="grid min-w-0 grid-cols-2 gap-2">
@@ -324,13 +324,13 @@ export function TournamentTimerPage({
             </div>
 
             {podiumSeason ? (
-              <div className="grid min-w-0 gap-2.5 sm:grid-cols-2">
+              <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-2.5">
                 <div className="min-w-0">
-                  <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-                    <p className="text-lg font-semibold whitespace-nowrap text-white/78 sm:text-xl">
+                  <div className="mdl:min-h-[9.2rem] flex min-h-[7.25rem] flex-col items-center justify-center rounded-[1.25rem] border border-white/10 bg-white/6 px-2.5 py-2 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:min-h-[8.5rem] sm:rounded-[1.75rem] sm:px-4 sm:py-2.5">
+                    <p className="text-sm leading-snug font-semibold break-keep text-white/78 sm:text-xl">
                       {podiumSeason.label} 최근 우승자
                     </p>
-                    <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
+                    <p className="mt-1 text-lg leading-tight font-semibold break-words text-white sm:mt-1.5 sm:text-xl">
                       {podiumStatsQuery.isPending
                         ? "불러오는 중"
                         : (podiumStats?.recentWinner ?? "기록 없음")}
@@ -339,7 +339,7 @@ export function TournamentTimerPage({
                 </div>
 
                 <div className="min-w-0">
-                  <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                  <div className="mdl:min-h-[9.2rem] relative flex min-h-[7.25rem] flex-col items-center justify-center rounded-[1.25rem] border border-white/10 bg-white/6 px-2.5 py-2 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:min-h-[8.5rem] sm:rounded-[1.75rem] sm:px-4 sm:py-2.5">
                     <Image
                       aria-hidden="true"
                       className="mdl:block pointer-events-none absolute top-0 left-1/2 z-10 hidden h-18 w-auto -translate-x-1/2 -translate-y-1/2"
@@ -348,12 +348,12 @@ export function TournamentTimerPage({
                       width={96}
                       height={87}
                     />
-                    <p className="text-lg font-semibold whitespace-nowrap text-amber-200 sm:text-xl">
-                      <span className="mdl:hidden inline-flex items-center justify-center gap-1.5">
+                    <p className="text-sm leading-snug font-semibold break-keep text-amber-200 sm:text-xl">
+                      <span className="mdl:hidden inline-flex items-center justify-center gap-1">
                         {podiumSeason.label} 최다 우승자
                         <Image
                           aria-hidden="true"
-                          className="h-6 w-auto"
+                          className="h-5 w-auto shrink-0 sm:h-6"
                           src="/ranking/crown-gold.png"
                           alt=""
                           width={96}
@@ -364,7 +364,7 @@ export function TournamentTimerPage({
                         {podiumSeason.label} 최다 우승자
                       </span>
                     </p>
-                    <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
+                    <p className="mt-1 text-lg leading-tight font-semibold break-words text-white sm:mt-1.5 sm:text-xl">
                       {podiumStatsQuery.isPending
                         ? "불러오는 중"
                         : (podiumStats?.topWinner ?? "기록 없음")}

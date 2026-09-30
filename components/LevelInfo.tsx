@@ -14,17 +14,17 @@ export default function LevelInfo({
   currentLevel,
 }: LevelInfoProps) {
   return (
-    <section className="h-48 mdl:h-42">
+    <section className="mdl:h-42 h-32 sm:h-40">
       <div
         key={animationKey}
-        className="animate-level-flash mdl:p-5 flex h-full min-h-[8.5rem] flex-col justify-center rounded-[1.75rem] p-4 sm:p-5"
+        className="animate-level-flash mdl:p-5 flex h-full flex-col justify-center rounded-[1.25rem] p-2 sm:rounded-[1.75rem] sm:p-4"
       >
-        <div className="flex flex-col gap-2.5">
-          <div className="mdl:text-left space-y-2 text-center">
-            <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/70 uppercase sm:text-sm">
+        <div className="flex flex-col gap-1.5 sm:gap-2.5">
+          <div className="mdl:text-left space-y-1.5 text-center sm:space-y-2">
+            <p className="mdl:text-sm text-[10px] font-semibold tracking-[0.14em] text-amber-200/70 uppercase sm:text-xs sm:tracking-[0.22em]">
               Current Stage
             </p>
-            <h1 className="font-dmdisplay text-[2.4rem] leading-none text-amber-50 sm:text-5xl mdl:text-[2.9rem]">
+            <h1 className="font-dmdisplay mdl:text-[2.9rem] text-[2.05rem] leading-none text-amber-50 sm:text-5xl">
               {getLevelTitle(currentLevel)}
             </h1>
           </div>
