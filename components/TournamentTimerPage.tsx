@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Trophy } from "lucide-react";
+import { FlaskConical, History, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
@@ -104,6 +104,16 @@ export function TournamentTimerPage({
 
     lastCelebrationIdRef.current = celebration.id;
     setCelebrationWinner(celebration);
+  };
+
+  const showTestWinnerCelebration = () => {
+    showWinnerCelebration({
+      id: `preview-${Date.now()}`,
+      gameType,
+      memberId: 0,
+      nicknameSnapshot: "엘리오",
+      seasonId,
+    });
   };
 
   useWinnerCelebrationStream(gameScope, showWinnerCelebration);
@@ -343,7 +353,7 @@ export function TournamentTimerPage({
                     <Image
                       aria-hidden="true"
                       className="mdl:block pointer-events-none absolute top-0 left-1/2 z-10 hidden h-18 w-auto -translate-x-1/2 -translate-y-1/2"
-                      src="/ranking/crown-gold.png"
+                      src="/ranking/crown-gold-hd.png"
                       alt=""
                       width={96}
                       height={87}
@@ -354,7 +364,7 @@ export function TournamentTimerPage({
                         <Image
                           aria-hidden="true"
                           className="h-5 w-auto shrink-0 sm:h-6"
-                          src="/ranking/crown-gold.png"
+                          src="/ranking/crown-gold-hd.png"
                           alt=""
                           width={96}
                           height={87}
@@ -486,10 +496,21 @@ export function TournamentTimerPage({
 
       {celebrationWinner ? (
         <WinnerCelebrationOverlay
+          key={celebrationWinner.id}
           nickname={celebrationWinner.nicknameSnapshot}
           onClose={() => setCelebrationWinner(null)}
+          soundEnabled={soundEnabled}
         />
       ) : null}
+
+      <button
+        className="btn-press-in fixed right-3 bottom-3 z-40 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-violet-200/30 bg-violet-200/14 px-3 text-xs font-bold text-violet-100 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md hover:bg-violet-200/20 sm:right-5 sm:bottom-5 sm:px-4 sm:text-sm"
+        type="button"
+        onClick={showTestWinnerCelebration}
+      >
+        <FlaskConical size={15} />
+        축하 UI 테스트
+      </button>
     </main>
   );
 }

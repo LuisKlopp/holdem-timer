@@ -119,7 +119,11 @@ body,
     @apply bg-background text-foreground;
     background:
       radial-gradient(circle at top, rgba(245, 158, 11, 0.12), transparent 32%),
-      radial-gradient(circle at 20% 80%, rgba(239, 68, 68, 0.1), transparent 24%),
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(239, 68, 68, 0.1),
+        transparent 24%
+      ),
       linear-gradient(180deg, #050816 0%, #070b1a 100%);
   }
   .font-outline-2 {
@@ -175,4 +179,191 @@ body,
 
 .animate-level-flash {
   animation: level-flash 0.45s ease-out;
+}
+
+@keyframes celebration-overlay-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(24px);
+  }
+}
+
+@keyframes celebration-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  50% {
+    opacity: 0.82;
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+}
+
+@keyframes celebration-crown-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-42px) scale(0.72) rotate(-7deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(5px) scale(1.06) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+  }
+}
+
+@keyframes celebration-crown-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+@keyframes celebration-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes celebration-name-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+    filter: blur(14px);
+    letter-spacing: -0.08em;
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    letter-spacing: 0;
+  }
+}
+
+@keyframes celebration-confetti-launch {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.45);
+    animation-timing-function: cubic-bezier(0.16, 0.72, 0.3, 1);
+  }
+  8% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 1;
+    transform: translate(
+        var(--confetti-apex-x),
+        var(--confetti-apex-y)
+      )
+      rotate(360deg) scale(1);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.85, 0.55);
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-end-x), var(--confetti-end-y))
+      rotate(var(--confetti-rotation)) scale(0.85);
+  }
+}
+
+.celebration-overlay {
+  animation: celebration-overlay-in 0.55s ease-out both;
+}
+
+.celebration-glow {
+  animation: celebration-glow-pulse 2.8s ease-in-out infinite;
+}
+
+.celebration-crown-entry {
+  animation: celebration-crown-in 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
+}
+
+.celebration-crown-float {
+  animation: celebration-crown-float 2.6s ease-in-out 1s infinite;
+}
+
+.celebration-kicker {
+  animation: celebration-reveal-up 0.65s ease-out 0.25s both;
+}
+
+.celebration-name {
+  animation: celebration-name-in 0.9s cubic-bezier(0.18, 0.9, 0.24, 1.15) 0.4s
+    both;
+}
+
+.celebration-message {
+  animation: celebration-reveal-up 0.65s ease-out 0.72s both;
+}
+
+.celebration-hint,
+.celebration-close {
+  animation: celebration-reveal-up 0.5s ease-out 1.05s both;
+}
+
+.celebration-confetti-launcher {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.celebration-confetti-launcher-left {
+  left: 1rem;
+}
+
+.celebration-confetti-launcher-right {
+  right: 1rem;
+}
+
+.celebration-confetti {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0.55rem;
+  height: 1rem;
+  border-radius: 0.15rem;
+  animation-name: celebration-confetti-launch;
+  animation-duration: var(--confetti-duration);
+  animation-delay: var(--confetti-delay);
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration-overlay,
+  .celebration-glow,
+  .celebration-crown-entry,
+  .celebration-crown-float,
+  .celebration-kicker,
+  .celebration-name,
+  .celebration-message,
+  .celebration-hint,
+  .celebration-close,
+  .celebration-confetti {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+    animation-iteration-count: 1;
+  }
 }

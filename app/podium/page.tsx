@@ -64,7 +64,7 @@ const getNicknameChipClassName = (rank: number) => {
 
 const getNicknameCrownSrc = (rank: number) => {
   if (rank === 1) {
-    return "/ranking/crown-gold.png";
+    return "/ranking/crown-gold-hd.png";
   }
 
   if (rank === 2) {

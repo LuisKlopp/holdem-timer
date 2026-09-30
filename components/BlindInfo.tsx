@@ -27,7 +27,7 @@ export default function BlindInfo({
         <p className="text-xs font-semibold tracking-[0.16em] text-white/45 uppercase sm:text-lg sm:tracking-[0.18em]">
           Blinds
         </p>
-        <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-end gap-x-1.5 text-white sm:mt-2.5 sm:gap-x-3">
+        <div className="mdl:grid-cols-[auto_auto_auto_auto_auto] mdl:justify-center mdl:gap-x-5 mt-2 grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-end gap-x-1.5 text-white sm:mt-2.5 sm:gap-x-3">
           <span className="pb-0.5 text-[10px] font-semibold tracking-[0.1em] text-white/55 uppercase sm:text-xl sm:tracking-[0.16em]">
             (SB)
           </span>
