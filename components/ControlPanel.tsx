@@ -2,6 +2,7 @@
 
 import {
   BellRing,
+  CircleStop,
   Pause,
   Play,
   RotateCcw,
@@ -15,18 +16,22 @@ import { type ChangeEvent, type ReactNode, useState } from "react";
 
 type ControlPanelProps = {
   isRunning: boolean;
+  isGameLoading?: boolean;
   alertVolume: number;
   soundEnabled: boolean;
   onAlertVolumeChange: (volume: number) => void;
+  onEndGame: () => void;
   onNext: () => void;
   onPause: () => void;
   onPrevious: () => void;
   onReset: () => void;
   onStart: () => void;
   onToggleSound: () => void;
+  canEndGame: boolean;
 };
 
 type ButtonProps = {
+  disabled?: boolean;
   icon: ReactNode;
   isPrimary?: boolean;
   label: string;
@@ -34,6 +39,7 @@ type ButtonProps = {
 };
 
 function ControlButton({
+  disabled = false,
   icon,
   isPrimary = false,
   label,
@@ -41,11 +47,12 @@ function ControlButton({
 }: ButtonProps) {
   return (
     <button
-      className={`btn-press-in mdl:py-2 inline-flex min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-[11px] font-semibold transition hover:-translate-y-0.5 sm:text-sm ${
+      className={`btn-press-in mdl:py-2 inline-flex min-w-0 items-center justify-center gap-2 rounded-full border px-3 py-2.5 text-[11px] font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 sm:text-sm ${
         isPrimary
           ? "border-amber-300/60 bg-amber-200 text-neutral-950 shadow-[0_12px_36px_rgba(251,191,36,0.25)]"
           : "border-white/12 bg-white/8 text-white/90 hover:bg-white/12"
       }`}
+      disabled={disabled}
       onClick={onClick}
       type="button"
     >
@@ -71,7 +78,7 @@ function ChimeVolumeControl({
   };
 
   return (
-    <div className="relative hidden mdl:block">
+    <div className="mdl:block relative hidden">
       <button
         className="btn-press-in inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2 text-sm font-semibold text-white/90 transition hover:-translate-y-0.5 hover:bg-white/12"
         type="button"
@@ -117,9 +124,12 @@ function ChimeVolumeControl({
 
 export default function ControlPanel({
   alertVolume,
+  canEndGame,
+  isGameLoading = false,
   isRunning,
   soundEnabled,
   onAlertVolumeChange,
+  onEndGame,
   onNext,
   onPause,
   onPrevious,
@@ -145,9 +155,10 @@ export default function ControlPanel({
             />
           ) : (
             <ControlButton
+              disabled={isGameLoading}
               icon={<Play className="h-4 w-4" />}
               isPrimary
-              label="시작 / 재생"
+              label={isGameLoading ? "게임 확인 중" : "시작 / 재생"}
               onClick={onStart}
             />
           )}
@@ -176,6 +187,18 @@ export default function ControlPanel({
             alertVolume={alertVolume}
             onAlertVolumeChange={onAlertVolumeChange}
           />
+        </div>
+
+        <div className="flex justify-end border-t border-white/8 pt-2">
+          <button
+            className="btn-press-in inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-rose-300/25 bg-rose-300/10 px-5 text-sm font-bold text-rose-100 transition hover:-translate-y-0.5 hover:bg-rose-300/16 disabled:cursor-not-allowed disabled:border-white/8 disabled:bg-white/4 disabled:text-white/25 disabled:hover:translate-y-0 sm:w-auto"
+            type="button"
+            disabled={!canEndGame}
+            onClick={onEndGame}
+          >
+            <CircleStop className="h-4 w-4" />
+            <span>게임 종료</span>
+          </button>
         </div>
       </div>
     </section>

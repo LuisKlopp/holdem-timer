@@ -114,6 +114,45 @@ const resolveRunningState = (
   };
 };
 
+const resolveStateFromElapsedTime = (
+  levels: BlindLevel[],
+  elapsedTime: number,
+  levelDurationOverrideSeconds: number | null,
+  now: number,
+) => {
+  let currentLevelIndex = 0;
+  let elapsedInLevels = Math.max(0, elapsedTime);
+
+  while (currentLevelIndex < levels.length) {
+    const levelDuration = getLevelDurationMs(
+      levels,
+      currentLevelIndex,
+      levelDurationOverrideSeconds,
+    );
+
+    if (elapsedInLevels < levelDuration) {
+      const remainingTime = levelDuration - elapsedInLevels;
+
+      return {
+        currentLevelIndex,
+        remainingTime,
+        isRunning: true,
+        endTime: now + remainingTime,
+      };
+    }
+
+    elapsedInLevels -= levelDuration;
+    currentLevelIndex += 1;
+  }
+
+  return {
+    currentLevelIndex: levels.length - 1,
+    remainingTime: 0,
+    isRunning: false,
+    endTime: null,
+  };
+};
+
 export const useBlindTimer = (levels = blindLevels) => {
   const [state, setState] = useState<TimerState>(() =>
     createInitialState(levels),
@@ -541,6 +580,34 @@ export const useBlindTimer = (levels = blindLevels) => {
     }));
   });
 
+  const resumeFromStartedAt = useEffectEvent((startedAt: string) => {
+    const startedAtTime = Date.parse(startedAt);
+
+    if (!Number.isFinite(startedAtTime)) {
+      return;
+    }
+
+    const now = Date.now();
+    const elapsedTime = Math.max(0, now - startedAtTime);
+
+    setState((previousState) => {
+      const resolvedState = resolveStateFromElapsedTime(
+        levels,
+        elapsedTime,
+        previousState.levelDurationOverrideSeconds,
+        now,
+      );
+
+      return {
+        ...previousState,
+        ...resolvedState,
+        runStartedAt: resolvedState.isRunning ? startedAtTime : null,
+        elapsedBeforeRun: resolvedState.isRunning ? 0 : elapsedTime,
+        animationKey: previousState.animationKey + 1,
+      };
+    });
+  });
+
   const toggleSound = useEffectEvent(async () => {
     await prepareAudio().catch(() => undefined);
 
@@ -602,6 +669,7 @@ export const useBlindTimer = (levels = blindLevels) => {
     jumpTo,
     pause,
     reset,
+    resumeFromStartedAt,
     setAlertVolume,
     setLevelDuration,
     start,

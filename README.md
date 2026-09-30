@@ -27,7 +27,9 @@ pnpm build
 
 - `/`: 타이머 선택
 - `/elio-holdem-timer`: 엘리오 홀덤 타이머 - 시즌 2
+- `/elio-holdem-timer/game-history`: 엘리오 홀덤 완료 게임 기록
 - `/feedback-tournament-timer`: 피드백 토너먼트 타이머
+- `/feedback-tournament-timer/game-history`: 피드백 토너먼트 완료 게임 기록
 - `/hall-of-fame`: 시즌 1 명예의전당
 - `/podium`: 시즌 2 우승 기록 입력
 

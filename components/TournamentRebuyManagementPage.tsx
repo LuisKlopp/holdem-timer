@@ -2,29 +2,67 @@
 
 import { ArrowLeft, Minus, Plus, Users } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import {
+  getTournamentGameDealer,
+  getTournamentGamePlayers,
+  type TournamentGameType,
+} from "@/api";
+import { useActiveTournamentGame } from "@/hooks";
 import type { TournamentGameStore } from "@/store";
 
 type TournamentRebuyManagementPageProps = {
+  gameType: TournamentGameType;
   memberManagementHref: string;
+  seasonId: number;
   timerHref: string;
   timerLabel: string;
   useGameStore: TournamentGameStore;
 };
 
 export function TournamentRebuyManagementPage({
+  gameType,
   memberManagementHref,
+  seasonId,
   timerHref,
   timerLabel,
   useGameStore,
 }: TournamentRebuyManagementPageProps) {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
-  const clearGame = useGameStore((state) => state.clearGame);
+  const gameScope = useMemo(
+    () => ({ gameType, seasonId }),
+    [gameType, seasonId]
+  );
+  const activeGameQuery = useActiveTournamentGame(gameScope);
   const decrementRebuy = useGameStore((state) => state.decrementRebuy);
   const incrementRebuy = useGameStore((state) => state.incrementRebuy);
   const rebuyCounts = useGameStore((state) => state.rebuyCounts);
+  const resetRebuys = useGameStore((state) => state.resetRebuys);
   const selectedMembers = useGameStore((state) => state.selectedMembers);
+  const setGameParticipants = useGameStore(
+    (state) => state.setGameParticipants
+  );
+
+  useEffect(() => {
+    const game = activeGameQuery.data;
+
+    if (!game) {
+      return;
+    }
+
+    const dealer = getTournamentGameDealer(game);
+
+    if (!dealer) {
+      return;
+    }
+
+    setGameParticipants(
+      getTournamentGamePlayers(game).map((player) => ({
+        nickname: player.nicknameSnapshot,
+      }))
+    );
+  }, [activeGameQuery.data, setGameParticipants]);
 
   const totalRebuys = selectedMembers.reduce(
     (total, member) => total + (rebuyCounts[member] ?? 0),
@@ -32,7 +70,7 @@ export function TournamentRebuyManagementPage({
   );
 
   const handleConfirmReset = () => {
-    clearGame();
+    resetRebuys();
     setIsResetConfirmOpen(false);
   };
 
@@ -148,7 +186,7 @@ export function TournamentRebuyManagementPage({
             type="button"
             onClick={() => setIsResetConfirmOpen(true)}
           >
-            게임 초기화
+            리바인 초기화
           </button>
         ) : null}
       </div>
@@ -169,10 +207,10 @@ export function TournamentRebuyManagementPage({
               className="text-xl font-bold text-rose-100"
               id="reset-confirm-title"
             >
-              게임을 초기화할까요?
+              리바인을 초기화할까요?
             </p>
             <p className="mt-2 text-sm leading-6 font-medium text-white/55">
-              선택된 멤버와 리바인 기록이 모두 삭제됩니다.
+              현재 게임의 리바인 횟수가 모두 0회로 초기화됩니다.
             </p>
 
             <div className="mt-5 grid grid-cols-2 gap-2">

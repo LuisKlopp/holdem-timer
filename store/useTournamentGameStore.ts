@@ -1,17 +1,19 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 
 type RebuyCounts = Record<string, number>;
+
+type GameMember = {
+  nickname: string;
+};
 
 export type TournamentGameState = {
   rebuyCounts: RebuyCounts;
   selectedMembers: string[];
-  gameStartedAt: string | null;
   clearGame: () => void;
   decrementRebuy: (nickname: string) => void;
   incrementRebuy: (nickname: string) => void;
-  startGame: (members: string[]) => void;
-  toggleSelectedMember: (nickname: string) => void;
+  resetRebuys: () => void;
+  setGameParticipants: (players: GameMember[]) => void;
 };
 
 const createInitialRebuyCounts = (
@@ -24,59 +26,67 @@ const createInitialRebuyCounts = (
     return counts;
   }, {});
 
-const createTournamentGameStore = (storageKey: string) =>
-  create<TournamentGameState>()(
-    persist(
-      (set) => ({
-        gameStartedAt: null,
-        rebuyCounts: {},
-        selectedMembers: [],
-        clearGame: () =>
-          set({
-            gameStartedAt: null,
-            rebuyCounts: {},
-            selectedMembers: [],
-          }),
-        decrementRebuy: (nickname) =>
-          set((state) => ({
-            rebuyCounts: {
-              ...state.rebuyCounts,
-              [nickname]: Math.max(0, (state.rebuyCounts[nickname] ?? 0) - 1),
-            },
-          })),
-        incrementRebuy: (nickname) =>
-          set((state) => ({
-            rebuyCounts: {
-              ...state.rebuyCounts,
-              [nickname]: (state.rebuyCounts[nickname] ?? 0) + 1,
-            },
-          })),
-        startGame: (members) =>
-          set((state) => ({
-            gameStartedAt: new Date().toISOString(),
-            rebuyCounts: createInitialRebuyCounts(members, state.rebuyCounts),
-            selectedMembers: members,
-          })),
-        toggleSelectedMember: (nickname) =>
-          set((state) => ({
-            selectedMembers: state.selectedMembers.includes(nickname)
-              ? state.selectedMembers.filter((member) => member !== nickname)
-              : [...state.selectedMembers, nickname],
-          })),
+const createTournamentGameStore = () =>
+  create<TournamentGameState>((set) => ({
+    rebuyCounts: {},
+    selectedMembers: [],
+    clearGame: () =>
+      set((state) => {
+        if (
+          state.selectedMembers.length === 0 &&
+          Object.keys(state.rebuyCounts).length === 0
+        ) {
+          return state;
+        }
+
+        return {
+          rebuyCounts: {},
+          selectedMembers: [],
+        };
       }),
-      {
-        name: storageKey,
-        storage: createJSONStorage(() => localStorage),
-      }
-    )
-  );
+    decrementRebuy: (nickname) =>
+      set((state) => ({
+        rebuyCounts: {
+          ...state.rebuyCounts,
+          [nickname]: Math.max(0, (state.rebuyCounts[nickname] ?? 0) - 1),
+        },
+      })),
+    incrementRebuy: (nickname) =>
+      set((state) => ({
+        rebuyCounts: {
+          ...state.rebuyCounts,
+          [nickname]: (state.rebuyCounts[nickname] ?? 0) + 1,
+        },
+      })),
+    resetRebuys: () =>
+      set((state) => ({
+        rebuyCounts: createInitialRebuyCounts(state.selectedMembers, {}),
+      })),
+    setGameParticipants: (players) =>
+      set((state) => {
+        const playerNicknames = players.map((player) => player.nickname);
+        const hasSamePlayers =
+          state.selectedMembers.length === playerNicknames.length &&
+          state.selectedMembers.every(
+            (nickname, index) => nickname === playerNicknames[index]
+          );
+
+        if (hasSamePlayers) {
+          return state;
+        }
+
+        return {
+          rebuyCounts: createInitialRebuyCounts(
+            playerNicknames,
+            state.rebuyCounts
+          ),
+          selectedMembers: playerNicknames,
+        };
+      }),
+  }));
 
 export type TournamentGameStore = ReturnType<typeof createTournamentGameStore>;
 
-export const useElioHoldemGameStore = createTournamentGameStore(
-  "elio-holdem-game-state"
-);
+export const useElioHoldemGameStore = createTournamentGameStore();
 
-export const useFeedbackTournamentGameStore = createTournamentGameStore(
-  "feedback-tournament-game-state"
-);
+export const useFeedbackTournamentGameStore = createTournamentGameStore();

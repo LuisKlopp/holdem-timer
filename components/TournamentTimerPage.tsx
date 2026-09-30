@@ -1,23 +1,53 @@
 "use client";
 
+import { History, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 
-import { getPodiumApiErrorMessage } from "@/api";
+import {
+  getGameApiErrorMessage,
+  getPodiumApiErrorMessage,
+  getTournamentGameDealer,
+  getTournamentGamePlayers,
+  type HoldemMember,
+  type TournamentGameType,
+  type WinnerCelebration,
+} from "@/api";
 import { CURRENT_SEASON } from "@/constants";
-import { useBlindTimer, usePodiumStats } from "@/hooks";
+import {
+  useActiveTournamentGame,
+  useBlindTimer,
+  useCreateTournamentGame,
+  useCreateWinnerCelebration,
+  useEndTournamentGame,
+  useHoldemMembers,
+  usePodiumStats,
+  useWinnerCelebrationStream,
+} from "@/hooks";
 import type { BlindLevel } from "@/lib";
+import type { TournamentGameStore } from "@/store";
 
 import BlindInfo from "./BlindInfo";
 import ControlPanel from "./ControlPanel";
+import CurrentGamePanel from "./CurrentGamePanel";
+import GameEndConfirmModal from "./GameEndConfirmModal";
+import GameSetupModal from "./GameSetupModal";
 import LevelInfo from "./LevelInfo";
 import TimerDisplay from "./TimerDisplay";
+import WinnerCelebrationModal from "./WinnerCelebrationModal";
+import WinnerCelebrationOverlay from "./WinnerCelebrationOverlay";
 
 type TournamentTimerPageProps = {
   blindMessage?: string;
   blindLevels?: BlindLevel[];
+  gameHistoryHref: string;
+  gameType: TournamentGameType;
   memberManagementHref?: string;
+  rebuyManagementHref: string;
+  seasonId: number;
   title: string;
+  useGameStore: TournamentGameStore;
   podiumSeason?: {
     id: number;
     label: string;
@@ -27,16 +57,56 @@ type TournamentTimerPageProps = {
 export function TournamentTimerPage({
   blindMessage,
   blindLevels,
+  gameHistoryHref,
+  gameType,
   memberManagementHref,
   podiumSeason,
+  rebuyManagementHref,
+  seasonId,
   title,
+  useGameStore,
 }: TournamentTimerPageProps) {
+  const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
+  const [isGameSetupOpen, setIsGameSetupOpen] = useState(false);
+  const [isWinnerCelebrationOpen, setIsWinnerCelebrationOpen] = useState(false);
+  const [celebrationWinner, setCelebrationWinner] =
+    useState<WinnerCelebration | null>(null);
+  const lastCelebrationIdRef = useRef<string | null>(null);
+  const gameScope = useMemo(
+    () => ({ gameType, seasonId }),
+    [gameType, seasonId]
+  );
   const hasPodiumStats = Boolean(podiumSeason);
   const podiumStatsQuery = usePodiumStats(
     podiumSeason?.id ?? CURRENT_SEASON.id,
     hasPodiumStats
   );
   const podiumStats = podiumStatsQuery.data;
+  useHoldemMembers();
+  const activeGameQuery = useActiveTournamentGame(gameScope);
+  const createGameMutation = useCreateTournamentGame(gameScope);
+  const endGameMutation = useEndTournamentGame(gameScope);
+  const winnerCelebrationMutation = useCreateWinnerCelebration();
+  const clearGame = useGameStore((state) => state.clearGame);
+  const setGameParticipants = useGameStore(
+    (state) => state.setGameParticipants
+  );
+  const currentGame = activeGameQuery.data ?? null;
+
+  const showWinnerCelebration = (celebration: WinnerCelebration) => {
+    if (
+      celebration.gameType !== gameType ||
+      celebration.seasonId !== seasonId ||
+      lastCelebrationIdRef.current === celebration.id
+    ) {
+      return;
+    }
+
+    lastCelebrationIdRef.current = celebration.id;
+    setCelebrationWinner(celebration);
+  };
+
+  useWinnerCelebrationStream(gameScope, showWinnerCelebration);
 
   const {
     alertVolume,
@@ -49,11 +119,92 @@ export function TournamentTimerPage({
     levelDurationMinutes,
     pause,
     reset,
+    resumeFromStartedAt,
     setAlertVolume,
     soundEnabled,
     start,
     toggleSound,
   } = useBlindTimer(blindLevels);
+
+  const syncActiveGame = useEffectEvent(() => {
+    if (!currentGame) {
+      clearGame();
+      reset();
+      return;
+    }
+
+    const players = getTournamentGamePlayers(currentGame);
+    const dealer = getTournamentGameDealer(currentGame);
+
+    if (dealer) {
+      setGameParticipants(
+        players.map((player) => ({
+          nickname: player.nicknameSnapshot,
+        }))
+      );
+    }
+
+    resumeFromStartedAt(currentGame.startedAt);
+  });
+
+  useEffect(() => {
+    if (!activeGameQuery.isSuccess) {
+      return;
+    }
+
+    syncActiveGame();
+  }, [
+    activeGameQuery.isSuccess,
+    currentGame?.id,
+    currentGame?.startedAt,
+    currentGame?.updatedAt,
+  ]);
+
+  const handleStart = () => {
+    if (activeGameQuery.isPending || activeGameQuery.isError) {
+      return;
+    }
+
+    if (!currentGame) {
+      createGameMutation.reset();
+      setIsGameSetupOpen(true);
+      return;
+    }
+
+    void start();
+  };
+
+  const handleGameSetupConfirm = (
+    players: HoldemMember[],
+    dealer: HoldemMember
+  ) => {
+    createGameMutation.mutate(
+      {
+        ...gameScope,
+        dealerId: dealer.id,
+        playerIds: players.map((player) => player.id),
+      },
+      {
+        onSuccess: () => {
+          setIsGameSetupOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleGameEndConfirm = () => {
+    if (!currentGame) {
+      return;
+    }
+
+    endGameMutation.mutate(currentGame.id, {
+      onSuccess: () => {
+        clearGame();
+        reset();
+        setIsEndConfirmOpen(false);
+      },
+    });
+  };
 
   return (
     <main className="relative min-h-svh overflow-x-hidden bg-[#050816] px-3 text-white sm:px-4">
@@ -65,11 +216,11 @@ export function TournamentTimerPage({
 
       <div className="mdl:gap-8 mdl:pt-7 relative mx-auto flex max-w-7xl flex-col gap-6 pt-6 pb-6 lg:gap-12 lg:pt-10 lg:pb-10">
         <header className="flex flex-col gap-3.5">
-          <p className="text-center text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-4xl mdl:text-left">
+          <p className="mdl:text-left text-center text-4xl font-semibold tracking-[0.08em] text-amber-200/65 uppercase sm:text-4xl">
             {title}
           </p>
 
-          <div className="flex flex-wrap justify-center gap-2 mdl:justify-start">
+          <div className="mdl:justify-start flex flex-wrap justify-center gap-2">
             <Link
               className="btn-press-in inline-flex items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
               href="/"
@@ -79,14 +230,17 @@ export function TournamentTimerPage({
             {podiumSeason ? (
               <>
                 <Link
-                  className="btn-press-in hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10 mdl:inline-flex"
+                  className="btn-press-in mdl:inline-flex hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
                   href="/podium"
                 >
                   {podiumSeason.label} 기록 입력
                 </Link>
                 <Link
-                  className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:hidden"
-                  href={memberManagementHref ?? "/elio-holdem-timer/member-management"}
+                  className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
+                  href={
+                    memberManagementHref ??
+                    "/elio-holdem-timer/member-management"
+                  }
                 >
                   멤버 관리
                 </Link>
@@ -94,16 +248,59 @@ export function TournamentTimerPage({
             ) : null}
             {!podiumSeason && memberManagementHref ? (
               <Link
-                className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18 mdl:hidden"
+                className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-4 py-1.5 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/18"
                 href={memberManagementHref}
               >
                 멤버 관리
               </Link>
             ) : null}
+            <button
+              className="btn-press-in mdl:hidden inline-flex items-center justify-center gap-1.5 rounded-full border border-amber-200/35 bg-amber-200/14 px-4 py-1.5 text-sm font-bold text-amber-100 transition hover:bg-amber-200/20"
+              type="button"
+              onClick={() => {
+                winnerCelebrationMutation.reset();
+                setIsWinnerCelebrationOpen(true);
+              }}
+            >
+              <Trophy size={15} />
+              우승 축하
+            </button>
+            <Link
+              className="btn-press-in mdl:inline-flex hidden items-center justify-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+              href={gameHistoryHref}
+            >
+              <History size={15} />
+              게임 기록
+            </Link>
           </div>
         </header>
 
-        <div className="flex flex-col gap-7 mdl:gap-9 lg:gap-14">
+        {currentGame ? (
+          <CurrentGamePanel
+            game={currentGame}
+            rebuyManagementHref={rebuyManagementHref}
+          />
+        ) : null}
+
+        {activeGameQuery.isError ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300/20 bg-rose-300/10 px-4 py-3">
+            <p className="text-sm font-semibold text-rose-100">
+              {getGameApiErrorMessage(
+                activeGameQuery.error,
+                "진행 중인 게임을 확인하지 못했습니다."
+              )}
+            </p>
+            <button
+              className="btn-press-in min-h-9 rounded-full border border-rose-200/20 px-4 text-xs font-bold text-rose-100"
+              type="button"
+              onClick={() => void activeGameQuery.refetch()}
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : null}
+
+        <div className="mdl:gap-9 flex flex-col gap-7 lg:gap-14">
           <section
             className={
               hasPodiumStats
@@ -128,52 +325,52 @@ export function TournamentTimerPage({
 
             {podiumSeason ? (
               <div className="grid min-w-0 gap-2.5 sm:grid-cols-2">
-              <div className="min-w-0">
-                <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-                  <p className="text-lg font-semibold whitespace-nowrap text-white/78 sm:text-xl">
-                    {podiumSeason.label} 최근 우승자
-                  </p>
-                  <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
-                    {podiumStatsQuery.isPending
-                      ? "불러오는 중"
-                      : (podiumStats?.recentWinner ?? "기록 없음")}
-                  </p>
+                <div className="min-w-0">
+                  <div className="mdl:min-h-[9.2rem] flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                    <p className="text-lg font-semibold whitespace-nowrap text-white/78 sm:text-xl">
+                      {podiumSeason.label} 최근 우승자
+                    </p>
+                    <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
+                      {podiumStatsQuery.isPending
+                        ? "불러오는 중"
+                        : (podiumStats?.recentWinner ?? "기록 없음")}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="min-w-0">
-                <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-                  <Image
-                    aria-hidden="true"
-                    className="pointer-events-none absolute top-0 left-1/2 z-10 hidden h-18 w-auto -translate-x-1/2 -translate-y-1/2 mdl:block"
-                    src="/ranking/crown-gold.png"
-                    alt=""
-                    width={96}
-                    height={87}
-                  />
-                  <p className="text-lg font-semibold whitespace-nowrap text-amber-200 sm:text-xl">
-                    <span className="inline-flex items-center justify-center gap-1.5 mdl:hidden">
-                      {podiumSeason.label} 최다 우승자
-                      <Image
-                        aria-hidden="true"
-                        className="h-6 w-auto"
-                        src="/ranking/crown-gold.png"
-                        alt=""
-                        width={96}
-                        height={87}
-                      />
-                    </span>
-                    <span className="hidden mdl:inline">
-                      {podiumSeason.label} 최다 우승자
-                    </span>
-                  </p>
-                  <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
-                    {podiumStatsQuery.isPending
-                      ? "불러오는 중"
-                      : (podiumStats?.topWinner ?? "기록 없음")}
-                  </p>
+                <div className="min-w-0">
+                  <div className="mdl:min-h-[9.2rem] relative flex min-h-[10rem] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-white/6 px-4 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                    <Image
+                      aria-hidden="true"
+                      className="mdl:block pointer-events-none absolute top-0 left-1/2 z-10 hidden h-18 w-auto -translate-x-1/2 -translate-y-1/2"
+                      src="/ranking/crown-gold.png"
+                      alt=""
+                      width={96}
+                      height={87}
+                    />
+                    <p className="text-lg font-semibold whitespace-nowrap text-amber-200 sm:text-xl">
+                      <span className="mdl:hidden inline-flex items-center justify-center gap-1.5">
+                        {podiumSeason.label} 최다 우승자
+                        <Image
+                          aria-hidden="true"
+                          className="h-6 w-auto"
+                          src="/ranking/crown-gold.png"
+                          alt=""
+                          width={96}
+                          height={87}
+                        />
+                      </span>
+                      <span className="mdl:inline hidden">
+                        {podiumSeason.label} 최다 우승자
+                      </span>
+                    </p>
+                    <p className="mt-1.5 text-xl leading-tight font-semibold break-words text-white">
+                      {podiumStatsQuery.isPending
+                        ? "불러오는 중"
+                        : (podiumStats?.topWinner ?? "기록 없음")}
+                    </p>
+                  </div>
                 </div>
-              </div>
               </div>
             ) : null}
           </section>
@@ -197,19 +394,102 @@ export function TournamentTimerPage({
         <div>
           <ControlPanel
             alertVolume={alertVolume}
+            canEndGame={currentGame !== null}
+            isGameLoading={activeGameQuery.isPending}
             isRunning={isRunning}
             onAlertVolumeChange={setAlertVolume}
+            onEndGame={() => setIsEndConfirmOpen(true)}
             onNext={goToNextLevel}
             onPause={pause}
             onPrevious={goToPreviousLevel}
             onReset={reset}
-            onStart={start}
+            onStart={handleStart}
             onToggleSound={toggleSound}
             soundEnabled={soundEnabled}
           />
         </div>
       </div>
 
+      {isGameSetupOpen ? (
+        <GameSetupModal
+          errorMessage={
+            createGameMutation.isError
+              ? getGameApiErrorMessage(
+                  createGameMutation.error,
+                  "게임을 시작하지 못했습니다."
+                )
+              : undefined
+          }
+          isSubmitting={createGameMutation.isPending}
+          onCancel={() => {
+            if (!createGameMutation.isPending) {
+              setIsGameSetupOpen(false);
+            }
+          }}
+          onConfirm={handleGameSetupConfirm}
+        />
+      ) : null}
+
+      {isEndConfirmOpen && currentGame ? (
+        <GameEndConfirmModal
+          errorMessage={
+            endGameMutation.isError
+              ? getGameApiErrorMessage(
+                  endGameMutation.error,
+                  "게임을 종료하지 못했습니다."
+                )
+              : undefined
+          }
+          game={currentGame}
+          isSubmitting={endGameMutation.isPending}
+          onCancel={() => {
+            if (!endGameMutation.isPending) {
+              setIsEndConfirmOpen(false);
+            }
+          }}
+          onConfirm={handleGameEndConfirm}
+        />
+      ) : null}
+
+      {isWinnerCelebrationOpen ? (
+        <WinnerCelebrationModal
+          errorMessage={
+            winnerCelebrationMutation.isError
+              ? getPodiumApiErrorMessage(
+                  winnerCelebrationMutation.error,
+                  "우승 축하를 전송하지 못했습니다."
+                )
+              : undefined
+          }
+          isSubmitting={winnerCelebrationMutation.isPending}
+          onCancel={() => {
+            if (!winnerCelebrationMutation.isPending) {
+              setIsWinnerCelebrationOpen(false);
+            }
+          }}
+          onConfirm={(winner) => {
+            winnerCelebrationMutation.mutate(
+              {
+                ...gameScope,
+                memberId: winner.id,
+              },
+              {
+                onSuccess: (celebration) => {
+                  showWinnerCelebration(celebration);
+                  setIsWinnerCelebrationOpen(false);
+                },
+              }
+            );
+          }}
+        />
+      ) : null}
+
+      {celebrationWinner ? (
+        <WinnerCelebrationOverlay
+          nickname={celebrationWinner.nicknameSnapshot}
+          onClose={() => setCelebrationWinner(null)}
+        />
+      ) : null}
     </main>
   );
 }

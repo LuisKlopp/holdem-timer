@@ -1,7 +1,13 @@
 export { default as BlindInfo } from "./BlindInfo";
 export { default as ControlPanel } from "./ControlPanel";
+export { default as CurrentGamePanel } from "./CurrentGamePanel";
+export { default as GameEndConfirmModal } from "./GameEndConfirmModal";
+export { default as GameSetupModal } from "./GameSetupModal";
 export { default as LevelInfo } from "./LevelInfo";
 export { default as TimerDisplay } from "./TimerDisplay";
+export { TournamentGameHistoryPage } from "./TournamentGameHistoryPage";
 export { TournamentMemberManagementPage } from "./TournamentMemberManagementPage";
 export { TournamentRebuyManagementPage } from "./TournamentRebuyManagementPage";
 export { TournamentTimerPage } from "./TournamentTimerPage";
+export { default as WinnerCelebrationModal } from "./WinnerCelebrationModal";
+export { default as WinnerCelebrationOverlay } from "./WinnerCelebrationOverlay";
