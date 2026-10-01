@@ -184,11 +184,9 @@ body,
 @keyframes celebration-overlay-in {
   from {
     opacity: 0;
-    backdrop-filter: blur(0);
   }
   to {
     opacity: 1;
-    backdrop-filter: blur(24px);
   }
 }
 
@@ -264,7 +262,7 @@ body,
 @keyframes celebration-confetti-launch {
   0% {
     opacity: 0;
-    transform: translate(0, 0) rotate(0deg) scale(0.45);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.45);
     animation-timing-function: cubic-bezier(0.16, 0.72, 0.3, 1);
   }
   8% {
@@ -272,9 +270,10 @@ body,
   }
   58% {
     opacity: 1;
-    transform: translate(
+    transform: translate3d(
         var(--confetti-apex-x),
-        var(--confetti-apex-y)
+        var(--confetti-apex-y),
+        0
       )
       rotate(360deg) scale(1);
     animation-timing-function: cubic-bezier(0.42, 0, 0.85, 0.55);
@@ -284,17 +283,30 @@ body,
   }
   100% {
     opacity: 0;
-    transform: translate(var(--confetti-end-x), var(--confetti-end-y))
+    transform: translate3d(var(--confetti-end-x), var(--confetti-end-y), 0)
       rotate(var(--confetti-rotation)) scale(0.85);
   }
 }
 
 .celebration-overlay {
   animation: celebration-overlay-in 0.55s ease-out both;
+  contain: layout paint;
+  isolation: isolate;
+}
+
+.celebration-effects {
+  contain: layout paint style;
 }
 
 .celebration-glow {
+  background: radial-gradient(
+    circle,
+    rgb(251 191 36 / 18%) 0%,
+    rgb(251 191 36 / 9%) 42%,
+    transparent 72%
+  );
   animation: celebration-glow-pulse 2.8s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .celebration-crown-entry {
@@ -344,11 +356,19 @@ body,
   left: 0;
   width: 0.55rem;
   height: 1rem;
+  opacity: 0;
   border-radius: 0.15rem;
-  animation-name: celebration-confetti-launch;
-  animation-duration: var(--confetti-duration);
-  animation-delay: var(--confetti-delay);
-  animation-fill-mode: both;
+  animation-name: celebration-confetti-launch, celebration-confetti-launch,
+    celebration-confetti-launch;
+  animation-duration: var(--confetti-duration), var(--confetti-duration),
+    var(--confetti-duration);
+  animation-delay: var(--confetti-delay),
+    calc(var(--confetti-delay) + 2.95s),
+    calc(var(--confetti-delay) + 5.9s);
+  animation-fill-mode: none;
+  backface-visibility: hidden;
+  contain: layout paint style;
+  will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {

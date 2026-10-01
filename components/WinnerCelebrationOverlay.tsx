@@ -46,14 +46,17 @@ const rightEndYJitter = [-4, 5, -2, 6, -5, 3, -1, 4, -3, 2];
 const rightStartJitter = [0.7, -0.4, 1.1, -0.8, 0.3, -1.2, 0.9, -0.2, 1.3, -0.6];
 
 const createConfettiBurst = (direction: 1 | -1): ConfettiStyle[] =>
-  Array.from({ length: 30 }, (_, index) => {
+  Array.from({ length: 40 }, (_, index) => {
     const lane = index % 10;
     const variation = Math.floor(index / 10);
-    const apexSpread = [-2.5, 0.8, 3.2][variation];
-    const apexHeightSpread = [3, -2, 1][variation];
-    const fallSpread = [-2, 1.2, 4][variation];
-    const fallHeightSpread = [3, -3, 1][variation];
-    const startSpread = [-1.8, -0.1, 1.65][variation];
+    const apexSpread = [-2.5, 0.8, 3.2, -4.4][variation];
+    const apexHeightSpread = [3, -2, 1, -5][variation];
+    const fallSpread = [-2, 1.2, 4, -4.8][variation];
+    const fallHeightSpread = [3, -3, 1, -5][variation];
+    const startSpread = [-1.8, -0.1, 1.65, -2.7][variation];
+    const delayOffset = [0, 0.09, 0.18, 0.045][variation];
+    const durationOffset = [0, 0.11, 0.22, 0.06][variation];
+    const crossTravel = [8, 14, 11, 17][variation];
     const width = [0.44, 0.55, 0.66][(lane + variation) % 3];
     const rotationDirection = (lane + variation) % 2 === 0 ? 1 : -1;
     const isRight = direction === -1;
@@ -64,12 +67,12 @@ const createConfettiBurst = (direction: 1 | -1): ConfettiStyle[] =>
     const startJitter = isRight ? rightStartJitter[lane] : 0;
 
     return {
-      "--confetti-delay": `${lane * 0.035 + variation * 0.09 + (lane % 3) * 0.008}s`,
-      "--confetti-duration": `${confettiDurations[lane] + variation * 0.11}s`,
+      "--confetti-delay": `${lane * 0.035 + delayOffset + (lane % 3) * 0.008}s`,
+      "--confetti-duration": `${confettiDurations[lane] + durationOffset}s`,
       "--confetti-rotation": `${(760 + ((lane * 83 + variation * 127) % 300)) * rotationDirection * direction}deg`,
-      "--confetti-apex-x": `${(confettiApexX[lane] + apexSpread + apexXJitter) * direction}vw`,
+      "--confetti-apex-x": `${(confettiApexX[lane] + apexSpread + apexXJitter + crossTravel) * direction}vw`,
       "--confetti-apex-y": `${confettiApexY[lane] + apexHeightSpread + apexYJitter}vh`,
-      "--confetti-end-x": `${(confettiEndX[lane] + fallSpread + endXJitter) * direction}vw`,
+      "--confetti-end-x": `${(confettiEndX[lane] + fallSpread + endXJitter + crossTravel) * direction}vw`,
       "--confetti-end-y": `${confettiEndY[lane] + fallHeightSpread + endYJitter}vh`,
       left: `${(startSpread + ((lane % 4) - 1.5) * 0.16 + startJitter) * direction}rem`,
       width: `${width}rem`,
@@ -122,8 +125,8 @@ export default function WinnerCelebrationOverlay({
       aria-modal="true"
       aria-labelledby="celebration-winner-name"
     >
-      <div className="pointer-events-none absolute inset-0">
-        <div className="celebration-glow absolute top-1/2 left-1/2 h-[min(80vh,48rem)] w-[min(90vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-amber-400/14 blur-3xl" />
+      <div className="celebration-effects pointer-events-none absolute inset-0">
+        <div className="celebration-glow absolute top-1/2 left-1/2 h-[min(80vh,48rem)] w-[min(90vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%]" />
 
         <div className="celebration-confetti-launcher celebration-confetti-launcher-left">
           {leftConfetti.map((style, index) => (
