@@ -82,11 +82,6 @@ export function TournamentRebuyManagementPage({
     setIsEditingTodayMembers(true);
   };
 
-  const handleCancelEditTodayMembers = () => {
-    setSelectedMemberIds(todayMembers.map((member) => member.id));
-    setIsEditingTodayMembers(false);
-  };
-
   const handleConfirmReset = () => {
     resetRebuys();
     setSelectedMemberIds([]);
@@ -103,20 +98,12 @@ export function TournamentRebuyManagementPage({
 
       <div className="relative mx-auto flex min-h-[calc(100svh-2.5rem)] max-w-3xl flex-col gap-5">
         <header className="flex items-center justify-between gap-3">
-          {todayMembers.length > 0 ? (
+          {todayMembers.length > 0 && !isEditingTodayMembers ? (
             <button
               className="btn-press-in flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/80 transition hover:bg-white/10"
               type="button"
-              aria-label={
-                isEditingTodayMembers
-                  ? "오늘의 멤버 수정 취소"
-                  : "오늘의 멤버 수정"
-              }
-              onClick={
-                isEditingTodayMembers
-                  ? handleCancelEditTodayMembers
-                  : handleEditTodayMembers
-              }
+              aria-label="오늘의 멤버 수정"
+              onClick={handleEditTodayMembers}
             >
               <ArrowLeft size={20} />
             </button>
