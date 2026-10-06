@@ -6,8 +6,9 @@ export const holdemMemberQueryKeys = {
   all: ["holdem-members"] as const,
 };
 
-export const useHoldemMembers = () =>
+export const useHoldemMembers = (enabled = true) =>
   useQuery({
+    enabled,
     queryFn: getHoldemMembers,
     queryKey: holdemMemberQueryKeys.all,
   });

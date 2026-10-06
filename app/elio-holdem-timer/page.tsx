@@ -9,7 +9,6 @@ export default function ElioHoldemTimerPage() {
     <TournamentTimerPage
       gameHistoryHref="/elio-holdem-timer/game-history"
       gameType="ELIO_HOLDEM"
-      memberManagementHref="/elio-holdem-timer/member-management"
       podiumSeason={CURRENT_SEASON}
       rebuyManagementHref="/elio-holdem-timer/rebuy-management"
       seasonId={CURRENT_SEASON.id}

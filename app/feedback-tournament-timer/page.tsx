@@ -12,7 +12,6 @@ export default function FeedbackTournamentTimerPage() {
       blindLevels={feedbackTournamentBlindLevels}
       gameHistoryHref="/feedback-tournament-timer/game-history"
       gameType="FEEDBACK_TOURNAMENT"
-      memberManagementHref="/feedback-tournament-timer/member-management"
       rebuyManagementHref="/feedback-tournament-timer/rebuy-management"
       seasonId={CURRENT_SEASON.id}
       title="피드백 토너먼트 타이머"

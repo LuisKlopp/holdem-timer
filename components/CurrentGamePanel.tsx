@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown, UserRound, Users } from "lucide-react";
-import Link from "next/link";
 
 import {
   getTournamentGameDealer,
@@ -11,7 +10,6 @@ import {
 
 type CurrentGamePanelProps = {
   game: TournamentGameRecord;
-  rebuyManagementHref: string;
 };
 
 const formatStartTime = (value: string) =>
@@ -20,10 +18,7 @@ const formatStartTime = (value: string) =>
     minute: "2-digit",
   }).format(new Date(value));
 
-export default function CurrentGamePanel({
-  game,
-  rebuyManagementHref,
-}: CurrentGamePanelProps) {
+export default function CurrentGamePanel({ game }: CurrentGamePanelProps) {
   const players = getTournamentGamePlayers(game);
   const dealer = getTournamentGameDealer(game);
 
@@ -43,12 +38,6 @@ export default function CurrentGamePanel({
           </p>
         </div>
 
-        <Link
-          className="btn-press-in inline-flex min-h-10 items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 text-xs font-bold text-white/80 hover:bg-white/10"
-          href={rebuyManagementHref}
-        >
-          리바인 관리
-        </Link>
       </div>
 
       <details className="group mt-2 border-t border-white/8 pt-2">

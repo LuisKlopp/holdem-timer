@@ -43,7 +43,6 @@ type TournamentTimerPageProps = {
   blindLevels?: BlindLevel[];
   gameHistoryHref: string;
   gameType: TournamentGameType;
-  memberManagementHref?: string;
   rebuyManagementHref: string;
   seasonId: number;
   title: string;
@@ -59,7 +58,6 @@ export function TournamentTimerPage({
   blindLevels,
   gameHistoryHref,
   gameType,
-  memberManagementHref,
   podiumSeason,
   rebuyManagementHref,
   seasonId,
@@ -228,32 +226,19 @@ export function TournamentTimerPage({
               타이머 선택
             </Link>
             {podiumSeason ? (
-              <>
-                <Link
-                  className="btn-press-in mdl:inline-flex hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
-                  href="/podium"
-                >
-                  {podiumSeason.label} 기록 입력
-                </Link>
-                <Link
-                  className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/18 sm:px-4 sm:text-sm"
-                  href={
-                    memberManagementHref ??
-                    "/elio-holdem-timer/member-management"
-                  }
-                >
-                  멤버 관리
-                </Link>
-              </>
-            ) : null}
-            {!podiumSeason && memberManagementHref ? (
               <Link
-                className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/12 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/18 sm:px-4 sm:text-sm"
-                href={memberManagementHref}
+                className="btn-press-in mdl:inline-flex hidden items-center justify-center rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+                href="/podium"
               >
-                멤버 관리
+                {podiumSeason.label} 기록 입력
               </Link>
             ) : null}
+            <Link
+              className="btn-press-in mdl:hidden inline-flex items-center justify-center rounded-full border border-sky-200/25 bg-sky-200/10 px-3 py-1.5 text-xs font-semibold text-sky-100 transition hover:bg-sky-200/16 sm:px-4 sm:text-sm"
+              href={rebuyManagementHref}
+            >
+              리바인 관리
+            </Link>
             <button
               className="btn-press-in mdl:hidden inline-flex items-center justify-center gap-1 rounded-full border border-amber-200/35 bg-amber-200/14 px-3 py-1.5 text-xs font-bold text-amber-100 transition hover:bg-amber-200/20 sm:gap-1.5 sm:px-4 sm:text-sm"
               type="button"
@@ -275,12 +260,7 @@ export function TournamentTimerPage({
           </div>
         </header>
 
-        {currentGame ? (
-          <CurrentGamePanel
-            game={currentGame}
-            rebuyManagementHref={rebuyManagementHref}
-          />
-        ) : null}
+        {currentGame ? <CurrentGamePanel game={currentGame} /> : null}
 
         {activeGameQuery.isError ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-300/20 bg-rose-300/10 px-4 py-3">
