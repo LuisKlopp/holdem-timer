@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, Loader2, Minus, Plus } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getGameApiErrorMessage } from "@/api";
 import { useHoldemMembers } from "@/hooks";
@@ -19,6 +19,7 @@ export function TournamentRebuyManagementPage({
   timerLabel,
   useRebuyStore,
 }: TournamentRebuyManagementPageProps) {
+  const [isEditingTodayMembers, setIsEditingTodayMembers] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
   const decrementRebuy = useRebuyStore((state) => state.decrementRebuy);
@@ -28,10 +29,22 @@ export function TournamentRebuyManagementPage({
   const resetRebuys = useRebuyStore((state) => state.resetRebuys);
   const setTodayMembers = useRebuyStore((state) => state.setTodayMembers);
   const todayMembers = useRebuyStore((state) => state.todayMembers);
-  const isSelectingTodayMembers = todayMembers.length === 0;
+  const isSelectingTodayMembers =
+    todayMembers.length === 0 || isEditingTodayMembers;
   const membersQuery = useHoldemMembers(
     hasHydrated && isSelectingTodayMembers
   );
+  const selectableMembers = useMemo(() => {
+    const currentMembers = membersQuery.data ?? [];
+    const currentMemberIds = new Set(
+      currentMembers.map((member) => member.id)
+    );
+    const unavailableTodayMembers = todayMembers.filter(
+      (member) => !currentMemberIds.has(member.id)
+    );
+
+    return [...currentMembers, ...unavailableTodayMembers];
+  }, [membersQuery.data, todayMembers]);
   const canConfirmTodayMembers = selectedMemberIds.length > 0;
   const totalRebuys = todayMembers.reduce(
     (total, member) => total + (entries[String(member.id)]?.count ?? 0),
@@ -53,14 +66,25 @@ export function TournamentRebuyManagementPage({
   };
 
   const handleConfirmTodayMembers = () => {
-    if (!canConfirmTodayMembers || !membersQuery.data) {
+    if (!canConfirmTodayMembers) {
       return;
     }
 
     const selectedIds = new Set(selectedMemberIds);
     setTodayMembers(
-      membersQuery.data.filter((member) => selectedIds.has(member.id))
+      selectableMembers.filter((member) => selectedIds.has(member.id))
     );
+    setIsEditingTodayMembers(false);
+  };
+
+  const handleEditTodayMembers = () => {
+    setSelectedMemberIds(todayMembers.map((member) => member.id));
+    setIsEditingTodayMembers(true);
+  };
+
+  const handleCancelEditTodayMembers = () => {
+    setSelectedMemberIds(todayMembers.map((member) => member.id));
+    setIsEditingTodayMembers(false);
   };
 
   const handleConfirmReset = () => {
@@ -79,13 +103,32 @@ export function TournamentRebuyManagementPage({
 
       <div className="relative mx-auto flex min-h-[calc(100svh-2.5rem)] max-w-3xl flex-col gap-5">
         <header className="flex items-center justify-between gap-3">
-          <Link
-            className="btn-press-in flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/80 transition hover:bg-white/10"
-            href={timerHref}
-            aria-label={`${timerLabel}로 돌아가기`}
-          >
-            <ArrowLeft size={20} />
-          </Link>
+          {todayMembers.length > 0 ? (
+            <button
+              className="btn-press-in flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/80 transition hover:bg-white/10"
+              type="button"
+              aria-label={
+                isEditingTodayMembers
+                  ? "오늘의 멤버 수정 취소"
+                  : "오늘의 멤버 수정"
+              }
+              onClick={
+                isEditingTodayMembers
+                  ? handleCancelEditTodayMembers
+                  : handleEditTodayMembers
+              }
+            >
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <Link
+              className="btn-press-in flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/80 transition hover:bg-white/10"
+              href={timerHref}
+              aria-label={`${timerLabel}로 돌아가기`}
+            >
+              <ArrowLeft size={20} />
+            </Link>
+          )}
 
           <div className="min-w-0 flex-1 text-center">
             <p className="text-xs font-semibold tracking-[0.22em] text-amber-200/60 uppercase">
@@ -156,9 +199,9 @@ export function TournamentRebuyManagementPage({
                       다시 시도
                     </button>
                   </section>
-                ) : membersQuery.data.length > 0 ? (
+                ) : selectableMembers.length > 0 ? (
                   <section className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {membersQuery.data.map((member) => {
+                    {selectableMembers.map((member) => {
                       const isSelected = selectedMemberIds.includes(member.id);
 
                       return (
@@ -203,7 +246,10 @@ export function TournamentRebuyManagementPage({
                   disabled={!canConfirmTodayMembers}
                   onClick={handleConfirmTodayMembers}
                 >
-                  오늘의 멤버 선택 ({selectedMemberIds.length}명)
+                  {isEditingTodayMembers
+                    ? "오늘의 멤버 수정 완료"
+                    : "오늘의 멤버 선택"}{" "}
+                  ({selectedMemberIds.length}명)
                 </button>
               </>
             ) : (

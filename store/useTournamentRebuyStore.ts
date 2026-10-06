@@ -79,10 +79,7 @@ const createTournamentRebuyStore = (storageKey: string) =>
               new Map(members.map((member) => [member.id, member])).values()
             );
 
-            if (
-              state.todayMembers.length > 0 ||
-              uniqueMembers.length === 0
-            ) {
+            if (uniqueMembers.length === 0) {
               return state;
             }
 
