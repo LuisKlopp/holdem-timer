@@ -2,17 +2,22 @@
 
 import { Trophy, X } from "lucide-react";
 import Image from "next/image";
-import { type CSSProperties, useEffect } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 
 import type { HoldemMemberGender } from "@/api";
 import { playCelebrationFanfare } from "@/lib/celebrationFanfare";
 
 type WinnerCelebrationOverlayProps = {
+  celebrationId: string;
   gender?: HoldemMemberGender | null;
+  memberId: number;
   nickname: string;
   onClose: () => void;
   soundEnabled?: boolean;
 };
+
+const HOLDEM_MEMBER_IMAGE_BASE_URL =
+  "https://elio-bucket-s3.s3.ap-northeast-2.amazonaws.com/holdem-members";
 
 type ConfettiStyle = CSSProperties & {
   "--confetti-delay": string;
@@ -91,13 +96,19 @@ const leftConfetti = createConfettiBurst(1);
 const rightConfetti = createConfettiBurst(-1);
 
 export default function WinnerCelebrationOverlay({
+  celebrationId,
   gender,
+  memberId,
   nickname,
   onClose,
   soundEnabled = true,
 }: WinnerCelebrationOverlayProps) {
-  const winnerImageSrc =
+  const [hasCustomImageError, setHasCustomImageError] = useState(false);
+  const defaultWinnerImageSrc =
     gender === "FEMALE" ? "/holdem-woman.png" : "/holdem-man.png";
+  const winnerImageSrc = hasCustomImageError
+    ? defaultWinnerImageSrc
+    : `${HOLDEM_MEMBER_IMAGE_BASE_URL}/${memberId}.webp?v=${encodeURIComponent(celebrationId)}`;
 
   useEffect(() => {
     if (!soundEnabled) {
@@ -181,10 +192,11 @@ export default function WinnerCelebrationOverlay({
           <Image
             className="object-cover"
             src={winnerImageSrc}
-            alt={`${nickname} 우승자 기본 이미지`}
+            alt={`${nickname} 우승자 이미지`}
             fill
             sizes="(min-width: 1024px) 256px, (min-width: 640px) 224px, 52vw"
             priority
+            onError={() => setHasCustomImageError(true)}
           />
         </div>
         <p className="celebration-kicker mt-6 flex items-center justify-center gap-2 text-sm font-black tracking-[0.32em] text-amber-200 uppercase sm:text-lg lg:text-xl">

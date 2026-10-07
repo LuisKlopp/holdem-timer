@@ -466,8 +466,10 @@ export function TournamentTimerPage({
 
       {celebrationWinner ? (
         <WinnerCelebrationOverlay
+          celebrationId={celebrationWinner.id}
           gender={celebrationWinner.gender}
           key={celebrationWinner.id}
+          memberId={celebrationWinner.memberId}
           nickname={celebrationWinner.nicknameSnapshot}
           onClose={() => setCelebrationWinner(null)}
           soundEnabled={soundEnabled}
