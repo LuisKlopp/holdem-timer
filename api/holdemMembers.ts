@@ -1,6 +1,9 @@
 import axios from "axios";
 
+export type HoldemMemberGender = "FEMALE" | "MALE";
+
 export type HoldemMember = {
+  gender: HoldemMemberGender | null;
   id: number;
   nickname: string;
 };

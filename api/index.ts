@@ -15,7 +15,11 @@ export {
   type TournamentGameStatus,
   type TournamentGameType,
 } from "./games";
-export { getHoldemMembers, type HoldemMember } from "./holdemMembers";
+export {
+  getHoldemMembers,
+  type HoldemMember,
+  type HoldemMemberGender,
+} from "./holdemMembers";
 export {
   createPodiumRecord,
   deletePodiumRecords,

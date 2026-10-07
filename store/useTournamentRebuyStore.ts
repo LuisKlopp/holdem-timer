@@ -16,10 +16,10 @@ export type TournamentRebuyState = {
   hasHydrated: boolean;
   todayMembers: TodayMember[];
   decrementRebuy: (memberId: number) => void;
-  incrementRebuy: (member: HoldemMember) => void;
+  incrementRebuy: (member: TodayMember) => void;
   resetRebuys: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
-  setTodayMembers: (members: HoldemMember[]) => void;
+  setTodayMembers: (members: TodayMember[]) => void;
 };
 
 const createTournamentRebuyStore = (storageKey: string) =>

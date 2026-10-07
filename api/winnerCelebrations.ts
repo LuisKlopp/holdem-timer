@@ -1,8 +1,10 @@
 import axios from "axios";
 
 import type { TournamentGameScope } from "./games";
+import type { HoldemMemberGender } from "./holdemMembers";
 
 export type WinnerCelebration = TournamentGameScope & {
+  gender?: HoldemMemberGender | null;
   id: string;
   memberId: number;
   nicknameSnapshot: string;
@@ -62,6 +64,10 @@ export const isWinnerCelebration = (
   const celebration = value as Partial<WinnerCelebration>;
 
   return (
+    (celebration.gender === undefined ||
+      celebration.gender === null ||
+      celebration.gender === "FEMALE" ||
+      celebration.gender === "MALE") &&
     typeof celebration.id === "string" &&
     typeof celebration.memberId === "number" &&
     typeof celebration.nicknameSnapshot === "string" &&

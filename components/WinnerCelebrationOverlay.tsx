@@ -4,9 +4,11 @@ import { Trophy, X } from "lucide-react";
 import Image from "next/image";
 import { type CSSProperties, useEffect } from "react";
 
+import type { HoldemMemberGender } from "@/api";
 import { playCelebrationFanfare } from "@/lib/celebrationFanfare";
 
 type WinnerCelebrationOverlayProps = {
+  gender?: HoldemMemberGender | null;
   nickname: string;
   onClose: () => void;
   soundEnabled?: boolean;
@@ -89,10 +91,14 @@ const leftConfetti = createConfettiBurst(1);
 const rightConfetti = createConfettiBurst(-1);
 
 export default function WinnerCelebrationOverlay({
+  gender,
   nickname,
   onClose,
   soundEnabled = true,
 }: WinnerCelebrationOverlayProps) {
+  const winnerImageSrc =
+    gender === "FEMALE" ? "/holdem-woman.png" : "/holdem-man.png";
+
   useEffect(() => {
     if (!soundEnabled) {
       return;
@@ -168,6 +174,16 @@ export default function WinnerCelebrationOverlay({
             height={1194}
             sizes="(min-width: 1024px) 177px, (min-width: 640px) 141px, 106px"
             unoptimized
+            priority
+          />
+        </div>
+        <div className="celebration-winner-portrait relative mt-3 aspect-square w-[min(52vw,12rem)] overflow-hidden rounded-[1.75rem] border border-amber-200/30 bg-amber-200/8 shadow-[0_20px_70px_rgba(251,191,36,0.18)] sm:w-56 sm:rounded-[2rem] lg:w-64">
+          <Image
+            className="object-cover"
+            src={winnerImageSrc}
+            alt={`${nickname} 우승자 기본 이미지`}
+            fill
+            sizes="(min-width: 1024px) 256px, (min-width: 640px) 224px, 52vw"
             priority
           />
         </div>

@@ -317,6 +317,10 @@ body,
   animation: celebration-crown-float 2.6s ease-in-out 1s infinite;
 }
 
+.celebration-winner-portrait {
+  animation: celebration-reveal-up 0.7s ease-out 0.18s both;
+}
+
 .celebration-kicker {
   animation: celebration-reveal-up 0.65s ease-out 0.25s both;
 }
@@ -376,6 +380,7 @@ body,
   .celebration-glow,
   .celebration-crown-entry,
   .celebration-crown-float,
+  .celebration-winner-portrait,
   .celebration-kicker,
   .celebration-name,
   .celebration-message,
