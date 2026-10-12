@@ -45,12 +45,18 @@ const confettiApexX = [55, 62, 52, 66, 58, 64, 50, 68, 56, 62];
 const confettiApexY = [-76, -88, -68, -82, -96, -72, -84, -92, -70, -86];
 const confettiEndX = [62, 68, 58, 72, 66, 70, 56, 76, 62, 70];
 const confettiEndY = [-12, -20, -8, -16, -28, -6, -18, -24, -10, -22];
-const confettiDurations = [2.2, 2.45, 2.05, 2.35, 2.55, 2.15, 2.4, 2.5, 2.1, 2.3];
-const rightApexXJitter = [-4.2, 2.8, -1.6, 5.1, -3.3, 1.4, 4.4, -2.5, 3.6, -0.8];
+const confettiDurations = [
+  2.2, 2.45, 2.05, 2.35, 2.55, 2.15, 2.4, 2.5, 2.1, 2.3,
+];
+const rightApexXJitter = [
+  -4.2, 2.8, -1.6, 5.1, -3.3, 1.4, 4.4, -2.5, 3.6, -0.8,
+];
 const rightApexYJitter = [5, -4, 2, -6, 3, -2, 6, -3, 1, -5];
 const rightEndXJitter = [2.5, -4.4, 3.2, -1.8, 5, -3, 1.2, -5.2, 3.8, -2.1];
 const rightEndYJitter = [-4, 5, -2, 6, -5, 3, -1, 4, -3, 2];
-const rightStartJitter = [0.7, -0.4, 1.1, -0.8, 0.3, -1.2, 0.9, -0.2, 1.3, -0.6];
+const rightStartJitter = [
+  0.7, -0.4, 1.1, -0.8, 0.3, -1.2, 0.9, -0.2, 1.3, -0.6,
+];
 
 const createConfettiBurst = (direction: 1 | -1): ConfettiStyle[] =>
   Array.from({ length: 40 }, (_, index) => {
@@ -211,7 +217,7 @@ export default function WinnerCelebrationOverlay({
           {nickname}
         </h2>
         <p className="celebration-message mt-6 text-xl font-bold tracking-[0.08em] text-white/72 sm:text-2xl lg:text-3xl">
-          우승을 축하합니다!
+          운 좋은 줄 아세요 😁
         </p>
       </div>
     </div>
