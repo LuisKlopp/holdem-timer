@@ -4,6 +4,7 @@ export { default as CurrentGamePanel } from "./CurrentGamePanel";
 export { default as GameEndConfirmModal } from "./GameEndConfirmModal";
 export { default as GameSetupModal } from "./GameSetupModal";
 export { default as LevelInfo } from "./LevelInfo";
+export { default as SeasonRankingModal } from "./SeasonRankingModal";
 export { default as TimerDisplay } from "./TimerDisplay";
 export { TournamentGameHistoryPage } from "./TournamentGameHistoryPage";
 export { TournamentMemberManagementPage } from "./TournamentMemberManagementPage";

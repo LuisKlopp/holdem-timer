@@ -7,7 +7,6 @@ import { useElioHoldemGameStore } from "@/store";
 export default function ElioHoldemTimerPage() {
   return (
     <TournamentTimerPage
-      gameHistoryHref="/elio-holdem-timer/game-history"
       gameType="ELIO_HOLDEM"
       podiumSeason={CURRENT_SEASON}
       rebuyManagementHref="/elio-holdem-timer/rebuy-management"

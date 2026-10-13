@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Trophy } from "lucide-react";
+import { ListOrdered, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
@@ -34,6 +34,7 @@ import CurrentGamePanel from "./CurrentGamePanel";
 import GameEndConfirmModal from "./GameEndConfirmModal";
 import GameSetupModal from "./GameSetupModal";
 import LevelInfo from "./LevelInfo";
+import SeasonRankingModal from "./SeasonRankingModal";
 import TimerDisplay from "./TimerDisplay";
 import WinnerCelebrationModal from "./WinnerCelebrationModal";
 import WinnerCelebrationOverlay from "./WinnerCelebrationOverlay";
@@ -41,7 +42,6 @@ import WinnerCelebrationOverlay from "./WinnerCelebrationOverlay";
 type TournamentTimerPageProps = {
   blindMessage?: string;
   blindLevels?: BlindLevel[];
-  gameHistoryHref: string;
   gameType: TournamentGameType;
   rebuyManagementHref: string;
   seasonId: number;
@@ -56,7 +56,6 @@ type TournamentTimerPageProps = {
 export function TournamentTimerPage({
   blindMessage,
   blindLevels,
-  gameHistoryHref,
   gameType,
   podiumSeason,
   rebuyManagementHref,
@@ -66,6 +65,7 @@ export function TournamentTimerPage({
 }: TournamentTimerPageProps) {
   const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
   const [isGameSetupOpen, setIsGameSetupOpen] = useState(false);
+  const [isSeasonRankingOpen, setIsSeasonRankingOpen] = useState(false);
   const [isWinnerCelebrationOpen, setIsWinnerCelebrationOpen] = useState(false);
   const [celebrationWinner, setCelebrationWinner] =
     useState<WinnerCelebration | null>(null);
@@ -250,13 +250,14 @@ export function TournamentTimerPage({
               <Trophy size={15} />
               우승 축하
             </button>
-            <Link
-              className="btn-press-in mdl:inline-flex hidden items-center justify-center gap-1.5 rounded-full border border-white/12 bg-white/6 px-4 py-1.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
-              href={gameHistoryHref}
+            <button
+              className="btn-press-in inline-flex items-center justify-center gap-1 rounded-full border border-amber-200/24 bg-amber-200/10 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/16 sm:gap-1.5 sm:px-4 sm:text-sm"
+              onClick={() => setIsSeasonRankingOpen(true)}
+              type="button"
             >
-              <History size={15} />
-              게임 기록
-            </Link>
+              <ListOrdered size={15} />
+              {CURRENT_SEASON.label} 순위 보기
+            </button>
           </div>
         </header>
 
@@ -461,6 +462,13 @@ export function TournamentTimerPage({
               }
             );
           }}
+        />
+      ) : null}
+
+      {isSeasonRankingOpen ? (
+        <SeasonRankingModal
+          onClose={() => setIsSeasonRankingOpen(false)}
+          season={CURRENT_SEASON}
         />
       ) : null}
 
