@@ -217,7 +217,7 @@ export default function WinnerCelebrationOverlay({
           {nickname}
         </h2>
         <p className="celebration-message mt-6 text-xl font-bold tracking-[0.08em] text-white/72 sm:text-2xl lg:text-3xl">
-          운 좋은 줄 아세요 😁
+          {memberId === 1 ? "압도적인 실력!!" : "운 좋은 줄 아세요 😁"}
         </p>
       </div>
     </div>
