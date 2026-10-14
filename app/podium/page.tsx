@@ -5,7 +5,6 @@ import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
 import { getPodiumApiErrorMessage } from "@/api";
-import { SeasonRankingModal } from "@/components";
 import { CURRENT_SEASON } from "@/constants";
 import {
   useCreatePodiumRecord,
@@ -28,7 +27,6 @@ const INITIAL_FORM: PodiumForm = {
 
 export default function PodiumPage() {
   const [form, setForm] = useState<PodiumForm>(INITIAL_FORM);
-  const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const recordsQuery = usePodiumRecords(CURRENT_SEASON.id, 1, 20);
   const recentRecordsQuery = useRecentPodiumRecords(CURRENT_SEASON.id, 5);
@@ -72,7 +70,6 @@ export default function PodiumPage() {
     try {
       await deleteRecordsMutation.mutateAsync();
       setForm(INITIAL_FORM);
-      setIsWinnerModalOpen(false);
     } catch (error) {
       setMutationError(
         getPodiumApiErrorMessage(error, "전체 경기 기록을 삭제하지 못했습니다.")
@@ -125,13 +122,6 @@ export default function PodiumPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button
-              className="btn-press-in inline-flex items-center justify-center rounded-full border border-amber-200/24 bg-amber-200/10 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/16"
-              onClick={() => setIsWinnerModalOpen(true)}
-              type="button"
-            >
-              {CURRENT_SEASON.label} 순위 보기
-            </button>
             <Link
               className="btn-press-in inline-flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10"
               href="/elio-holdem-timer/game-history"
@@ -383,12 +373,6 @@ export default function PodiumPage() {
         </section>
       </div>
 
-      {isWinnerModalOpen ? (
-        <SeasonRankingModal
-          onClose={() => setIsWinnerModalOpen(false)}
-          season={CURRENT_SEASON}
-        />
-      ) : null}
     </main>
   );
 }

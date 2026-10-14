@@ -251,7 +251,7 @@ export function TournamentTimerPage({
               우승 축하
             </button>
             <button
-              className="btn-press-in inline-flex items-center justify-center gap-1 rounded-full border border-amber-200/24 bg-amber-200/10 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/16 sm:gap-1.5 sm:px-4 sm:text-sm"
+              className="btn-press-in smd:inline-flex hidden items-center justify-center gap-1 rounded-full border border-amber-200/24 bg-amber-200/10 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-200/16 sm:gap-1.5 sm:px-4 sm:text-sm"
               onClick={() => setIsSeasonRankingOpen(true)}
               type="button"
             >
