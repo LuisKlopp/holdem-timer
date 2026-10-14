@@ -111,7 +111,7 @@ export default function WinnerCelebrationOverlay({
 }: WinnerCelebrationOverlayProps) {
   const [hasCustomImageError, setHasCustomImageError] = useState(false);
   const defaultWinnerImageSrc =
-    gender === "FEMALE" ? "/holdem-woman.png" : "/holdem-man.png";
+    gender === "FEMALE" ? "/holdem-woman.webp" : "/holdem-man.webp";
   const winnerImageSrc = hasCustomImageError
     ? defaultWinnerImageSrc
     : `${HOLDEM_MEMBER_IMAGE_BASE_URL}/${memberId}.webp?v=${encodeURIComponent(celebrationId)}`;
