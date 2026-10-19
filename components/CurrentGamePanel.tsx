@@ -7,6 +7,10 @@ import {
   getTournamentGamePlayers,
   type TournamentGameRecord,
 } from "@/api";
+import {
+  parseTournamentDateTimeForDisplay,
+  TOURNAMENT_DISPLAY_TIME_ZONE,
+} from "@/lib";
 
 type CurrentGamePanelProps = {
   game: TournamentGameRecord;
@@ -16,7 +20,8 @@ const formatStartTime = (value: string) =>
   new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+    timeZone: TOURNAMENT_DISPLAY_TIME_ZONE,
+  }).format(parseTournamentDateTimeForDisplay(value));
 
 export default function CurrentGamePanel({ game }: CurrentGamePanelProps) {
   const players = getTournamentGamePlayers(game);

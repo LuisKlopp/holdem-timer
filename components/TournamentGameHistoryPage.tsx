@@ -20,6 +20,10 @@ import {
   type TournamentGameType,
 } from "@/api";
 import { useTournamentGames } from "@/hooks";
+import {
+  parseTournamentDateTimeForDisplay,
+  TOURNAMENT_DISPLAY_TIME_ZONE,
+} from "@/lib";
 
 type TournamentGameHistoryPageProps = {
   backHref: string;
@@ -34,13 +38,15 @@ const formatGameDate = (value: string) =>
     month: "long",
     day: "numeric",
     weekday: "short",
-  }).format(new Date(value));
+    timeZone: TOURNAMENT_DISPLAY_TIME_ZONE,
+  }).format(parseTournamentDateTimeForDisplay(value));
 
 const formatGameTime = (value: string) =>
   new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+    timeZone: TOURNAMENT_DISPLAY_TIME_ZONE,
+  }).format(parseTournamentDateTimeForDisplay(value));
 
 function GameHistoryCard({ game }: { game: TournamentGameRecord }) {
   const players = getTournamentGamePlayers(game);
