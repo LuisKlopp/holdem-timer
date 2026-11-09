@@ -3,7 +3,7 @@
 import { ListOrdered, Trophy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getGameApiErrorMessage,
@@ -70,6 +70,7 @@ export function TournamentTimerPage({
   const [celebrationWinner, setCelebrationWinner] =
     useState<WinnerCelebration | null>(null);
   const lastCelebrationIdRef = useRef<string | null>(null);
+  const syncedGameIdRef = useRef<string | null>(null);
   const gameScope = useMemo(
     () => ({ gameType, seasonId }),
     [gameType, seasonId]
@@ -90,6 +91,9 @@ export function TournamentTimerPage({
     (state) => state.setGameParticipants
   );
   const currentGame = activeGameQuery.data ?? null;
+  const timerPersistenceKey = currentGame
+    ? `holdem-blind-timer:${gameType}:${seasonId}:${currentGame.id}`
+    : null;
 
   const showWinnerCelebration = (celebration: WinnerCelebration) => {
     if (
@@ -113,6 +117,8 @@ export function TournamentTimerPage({
     formattedTime,
     goToNextLevel,
     goToPreviousLevel,
+    hasPersistedTimerState,
+    isHydrated: isTimerHydrated,
     isRunning,
     levelDurationMinutes,
     pause,
@@ -122,10 +128,15 @@ export function TournamentTimerPage({
     soundEnabled,
     start,
     toggleSound,
-  } = useBlindTimer(blindLevels);
+  } = useBlindTimer(blindLevels, timerPersistenceKey);
 
-  const syncActiveGame = useEffectEvent(() => {
+  useEffect(() => {
+    if (!activeGameQuery.isSuccess || !isTimerHydrated) {
+      return;
+    }
+
     if (!currentGame) {
+      syncedGameIdRef.current = null;
       clearGame();
       reset();
       return;
@@ -142,17 +153,19 @@ export function TournamentTimerPage({
       );
     }
 
-    resumeFromStartedAt(currentGame.startedAt);
-  });
-
-  useEffect(() => {
-    if (!activeGameQuery.isSuccess) {
+    if (syncedGameIdRef.current === currentGame.id) {
       return;
     }
 
-    syncActiveGame();
+    syncedGameIdRef.current = currentGame.id;
+
+    if (!hasPersistedTimerState) {
+      resumeFromStartedAt(currentGame.startedAt);
+    }
   }, [
     activeGameQuery.isSuccess,
+    hasPersistedTimerState,
+    isTimerHydrated,
     currentGame?.id,
     currentGame?.startedAt,
     currentGame?.updatedAt,

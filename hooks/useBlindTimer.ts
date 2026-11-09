@@ -3,10 +3,12 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { type BlindLevel, blindLevels } from "@/lib/blindLevels";
+import { parseTournamentDateTimeAsKoreaInstant } from "@/lib/tournamentDateTime";
 
 const TICK_INTERVAL_MS = 250;
 const ALERT_VOLUME_GAIN = 4.5;
 const DEFAULT_ALERT_VOLUME = 80;
+const TIMER_STORAGE_VERSION = 1;
 
 type TimerState = {
   currentLevelIndex: number;
@@ -20,6 +22,43 @@ type TimerState = {
   alertVolume: number;
   animationKey: number;
   isHydrated: boolean;
+};
+
+type PersistedTimerState = Pick<
+  TimerState,
+  | "currentLevelIndex"
+  | "elapsedBeforeRun"
+  | "endTime"
+  | "isRunning"
+  | "levelDurationOverrideSeconds"
+  | "remainingTime"
+  | "runStartedAt"
+> & {
+  version: typeof TIMER_STORAGE_VERSION;
+};
+
+const isNullableNumber = (value: unknown): value is number | null =>
+  value === null || typeof value === "number";
+
+const isPersistedTimerState = (
+  value: unknown,
+): value is PersistedTimerState => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const timerState = value as Partial<PersistedTimerState>;
+
+  return (
+    timerState.version === TIMER_STORAGE_VERSION &&
+    typeof timerState.currentLevelIndex === "number" &&
+    typeof timerState.elapsedBeforeRun === "number" &&
+    isNullableNumber(timerState.endTime) &&
+    typeof timerState.isRunning === "boolean" &&
+    isNullableNumber(timerState.levelDurationOverrideSeconds) &&
+    typeof timerState.remainingTime === "number" &&
+    isNullableNumber(timerState.runStartedAt)
+  );
 };
 
 const clampLevelIndex = (levels: BlindLevel[], levelIndex: number) =>
@@ -71,7 +110,7 @@ const createInitialState = (levels: BlindLevel[]): TimerState => ({
   soundEnabled: true,
   alertVolume: DEFAULT_ALERT_VOLUME,
   animationKey: 0,
-  isHydrated: true,
+  isHydrated: false,
 });
 
 const resolveRunningState = (
@@ -153,12 +192,175 @@ const resolveStateFromElapsedTime = (
   };
 };
 
-export const useBlindTimer = (levels = blindLevels) => {
+export const useBlindTimer = (
+  levels = blindLevels,
+  persistenceKey: string | null = null,
+) => {
   const [state, setState] = useState<TimerState>(() =>
     createInitialState(levels),
   );
   const audioContextRef = useRef<AudioContext | null>(null);
+  const hydratedPersistenceKeyRef = useRef<string | null | undefined>(
+    undefined,
+  );
   const previousLevelIndexRef = useRef<number | null>(null);
+  const shouldPersistTimerRef = useRef(false);
+  const timerStateRef = useRef(state);
+
+  timerStateRef.current = state;
+
+  const isTimerHydrated =
+    state.isHydrated && hydratedPersistenceKeyRef.current === persistenceKey;
+
+  useEffect(() => {
+    const previousPersistenceKey = hydratedPersistenceKeyRef.current;
+
+    if (
+      previousPersistenceKey &&
+      previousPersistenceKey !== persistenceKey
+    ) {
+      window.localStorage.removeItem(previousPersistenceKey);
+    }
+
+    hydratedPersistenceKeyRef.current = persistenceKey;
+    shouldPersistTimerRef.current = false;
+
+    const initialState = createInitialState(levels);
+
+    if (!persistenceKey) {
+      setState((previousState) => ({
+        ...initialState,
+        alertVolume: previousState.alertVolume,
+        animationKey: previousState.animationKey + 1,
+        isHydrated: true,
+        soundEnabled: previousState.soundEnabled,
+      }));
+      return;
+    }
+
+    try {
+      const savedState = JSON.parse(
+        window.localStorage.getItem(persistenceKey) ?? "null",
+      );
+
+      if (!isPersistedTimerState(savedState)) {
+        window.localStorage.removeItem(persistenceKey);
+        setState((previousState) => ({
+          ...initialState,
+          alertVolume: previousState.alertVolume,
+          animationKey: previousState.animationKey + 1,
+          isHydrated: true,
+          soundEnabled: previousState.soundEnabled,
+        }));
+        return;
+      }
+
+      shouldPersistTimerRef.current = true;
+
+      setState((previousState) => {
+        if (savedState.isRunning && savedState.endTime !== null) {
+          const resolvedState = resolveRunningState(
+            levels,
+            savedState.currentLevelIndex,
+            savedState.endTime,
+            savedState.levelDurationOverrideSeconds,
+            Date.now(),
+          );
+
+          return {
+            ...initialState,
+            alertVolume: previousState.alertVolume,
+            animationKey: previousState.animationKey + 1,
+            currentLevelIndex: resolvedState.currentLevelIndex,
+            elapsedBeforeRun: savedState.elapsedBeforeRun,
+            endTime: resolvedState.endTime,
+            isHydrated: true,
+            isRunning: resolvedState.isRunning,
+            levelDurationOverrideSeconds:
+              savedState.levelDurationOverrideSeconds,
+            remainingTime: resolvedState.remainingTime,
+            runStartedAt: resolvedState.isRunning
+              ? savedState.runStartedAt
+              : null,
+            soundEnabled: previousState.soundEnabled,
+          };
+        }
+
+        return {
+          ...initialState,
+          alertVolume: previousState.alertVolume,
+          animationKey: previousState.animationKey + 1,
+          currentLevelIndex: clampLevelIndex(
+            levels,
+            savedState.currentLevelIndex,
+          ),
+          elapsedBeforeRun: savedState.elapsedBeforeRun,
+          isHydrated: true,
+          levelDurationOverrideSeconds: savedState.levelDurationOverrideSeconds,
+          remainingTime: Math.max(0, savedState.remainingTime),
+          soundEnabled: previousState.soundEnabled,
+        };
+      });
+    } catch {
+      window.localStorage.removeItem(persistenceKey);
+      setState((previousState) => ({
+        ...initialState,
+        alertVolume: previousState.alertVolume,
+        animationKey: previousState.animationKey + 1,
+        isHydrated: true,
+        soundEnabled: previousState.soundEnabled,
+      }));
+    }
+  }, [levels, persistenceKey]);
+
+  useEffect(() => {
+    if (!persistenceKey || !isTimerHydrated) {
+      return;
+    }
+
+    const persistTimerState = () => {
+      if (!shouldPersistTimerRef.current) {
+        return;
+      }
+
+      const currentState = timerStateRef.current;
+      const persistedState: PersistedTimerState = {
+        currentLevelIndex: currentState.currentLevelIndex,
+        elapsedBeforeRun: currentState.elapsedBeforeRun,
+        endTime: currentState.endTime,
+        isRunning: currentState.isRunning,
+        levelDurationOverrideSeconds:
+          currentState.levelDurationOverrideSeconds,
+        remainingTime: currentState.remainingTime,
+        runStartedAt: currentState.runStartedAt,
+        version: TIMER_STORAGE_VERSION,
+      };
+
+      window.localStorage.setItem(
+        persistenceKey,
+        JSON.stringify(persistedState),
+      );
+    };
+    const persistWhenHidden = () => {
+      if (document.visibilityState === "hidden") {
+        persistTimerState();
+      }
+    };
+
+    persistTimerState();
+
+    const intervalId = window.setInterval(persistTimerState, 1000);
+
+    document.addEventListener("visibilitychange", persistWhenHidden);
+    window.addEventListener("pagehide", persistTimerState);
+
+    return () => {
+      persistTimerState();
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", persistWhenHidden);
+      window.removeEventListener("pagehide", persistTimerState);
+    };
+  }, [isTimerHydrated, persistenceKey]);
 
   const prepareAudio = useEffectEvent(async () => {
     if (typeof window === "undefined") {
@@ -429,6 +631,8 @@ export const useBlindTimer = (levels = blindLevels) => {
   const moveToLevel = useEffectEvent((targetLevelIndex: number) => {
     const now = Date.now();
 
+    shouldPersistTimerRef.current = true;
+
     setState((previousState) => {
       const nextLevelIndex = clampLevelIndex(levels, targetLevelIndex);
       const nextDuration = getLevelDurationMs(
@@ -467,6 +671,8 @@ export const useBlindTimer = (levels = blindLevels) => {
     const nextRemainingTime = safeSeconds * 1000;
     const now = Date.now();
 
+    shouldPersistTimerRef.current = true;
+
     setState((previousState) => ({
       ...previousState,
       currentLevelIndex: nextLevelIndex,
@@ -480,6 +686,8 @@ export const useBlindTimer = (levels = blindLevels) => {
     const safeMinutes = Number.isFinite(minutes) ? Math.max(1, Math.floor(minutes)) : 8;
     const nextLevelDurationSeconds = safeMinutes * 60;
     const now = Date.now();
+
+    shouldPersistTimerRef.current = true;
 
     setState((previousState) => {
       if (
@@ -526,6 +734,8 @@ export const useBlindTimer = (levels = blindLevels) => {
   const start = useEffectEvent(async () => {
     await prepareAudio().catch(() => undefined);
 
+    shouldPersistTimerRef.current = true;
+
     setState((previousState) => {
       if (previousState.isRunning) {
         return previousState;
@@ -551,6 +761,8 @@ export const useBlindTimer = (levels = blindLevels) => {
   });
 
   const pause = useEffectEvent(() => {
+    shouldPersistTimerRef.current = true;
+
     setState((previousState) => {
       if (!previousState.isRunning || previousState.endTime === null) {
         return previousState;
@@ -572,16 +784,25 @@ export const useBlindTimer = (levels = blindLevels) => {
   });
 
   const reset = useEffectEvent(() => {
+    shouldPersistTimerRef.current = false;
+
+    const hydratedPersistenceKey = hydratedPersistenceKeyRef.current;
+
+    if (hydratedPersistenceKey) {
+      window.localStorage.removeItem(hydratedPersistenceKey);
+    }
+
     setState((previousState) => ({
       ...createInitialState(levels),
       soundEnabled: previousState.soundEnabled,
       alertVolume: previousState.alertVolume,
       animationKey: previousState.animationKey + 1,
+      isHydrated: true,
     }));
   });
 
   const resumeFromStartedAt = useEffectEvent((startedAt: string) => {
-    const startedAtTime = Date.parse(startedAt);
+    const startedAtTime = parseTournamentDateTimeAsKoreaInstant(startedAt);
 
     if (!Number.isFinite(startedAtTime)) {
       return;
@@ -589,6 +810,8 @@ export const useBlindTimer = (levels = blindLevels) => {
 
     const now = Date.now();
     const elapsedTime = Math.max(0, now - startedAtTime);
+
+    shouldPersistTimerRef.current = true;
 
     setState((previousState) => {
       const resolvedState = resolveStateFromElapsedTime(
@@ -653,7 +876,9 @@ export const useBlindTimer = (levels = blindLevels) => {
     currentLevelNumber: currentLevel.level,
     endTime: state.endTime,
     formattedTime: formatTime(state.remainingTime),
-    isHydrated: state.isHydrated,
+    hasPersistedTimerState:
+      isTimerHydrated && shouldPersistTimerRef.current,
+    isHydrated: isTimerHydrated,
     isRunning: state.isRunning,
     levelDurationMinutes: Math.floor(currentLevelDurationSeconds / 60),
     levelDurationSeconds: currentLevelDurationSeconds,
