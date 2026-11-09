@@ -8,7 +8,7 @@ import { parseTournamentDateTimeAsKoreaInstant } from "@/lib/tournamentDateTime"
 const TICK_INTERVAL_MS = 250;
 const ALERT_VOLUME_GAIN = 4.5;
 const DEFAULT_ALERT_VOLUME = 80;
-const TIMER_STORAGE_VERSION = 1;
+const TIMER_STORAGE_VERSION = 2;
 
 type TimerState = {
   currentLevelIndex: number;

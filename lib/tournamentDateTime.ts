@@ -1,5 +1,6 @@
 const ISO_DATE_TIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?/;
+const TIME_ZONE_SUFFIX_PATTERN = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 const KOREA_TIME_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 export const TOURNAMENT_DISPLAY_TIME_ZONE = "UTC";
@@ -52,6 +53,10 @@ export const parseTournamentDateTimeForDisplay = (value: string) => {
 
 // 서버가 기록한 한국 시각을 실제 타이머 계산에 사용할 절대 시각으로 변환한다.
 export const parseTournamentDateTimeAsKoreaInstant = (value: string) => {
+  if (TIME_ZONE_SUFFIX_PATTERN.test(value)) {
+    return Date.parse(value);
+  }
+
   const utcTime = getTournamentUtcTime(value);
 
   return utcTime === null ? Date.parse(value) : utcTime - KOREA_TIME_OFFSET_MS;
