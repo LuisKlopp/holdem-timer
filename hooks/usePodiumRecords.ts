@@ -5,6 +5,7 @@ import {
   deletePodiumRecords,
   getPodiumRankings,
   getPodiumRecords,
+  getPodiumRunnerUpRankings,
   getPodiumStats,
   getRecentPodiumRecords,
 } from "@/api";
@@ -14,6 +15,14 @@ export const podiumQueryKeys = {
   all: ["podium"] as const,
   rankings: (season: number, limit: number) =>
     [...podiumQueryKeys.all, "season", season, "rankings", limit] as const,
+  runnerUpRankings: (season: number, limit: number) =>
+    [
+      ...podiumQueryKeys.all,
+      "season",
+      season,
+      "runner-up-rankings",
+      limit,
+    ] as const,
   recent: (season: number, limit: number) =>
     [...podiumQueryKeys.all, "season", season, "recent", limit] as const,
   records: (season: number, page: number, limit: number) =>
@@ -49,6 +58,17 @@ export const usePodiumRankings = (season = CURRENT_SEASON_ID, limit = 100) =>
   useQuery({
     queryFn: () => getPodiumRankings(season, limit),
     queryKey: podiumQueryKeys.rankings(season, limit),
+  });
+
+export const usePodiumRunnerUpRankings = (
+  season = CURRENT_SEASON_ID,
+  limit = 100,
+  enabled = true
+) =>
+  useQuery({
+    enabled,
+    queryFn: () => getPodiumRunnerUpRankings(season, limit),
+    queryKey: podiumQueryKeys.runnerUpRankings(season, limit),
   });
 
 const useInvalidatePodiumQueries = () => {

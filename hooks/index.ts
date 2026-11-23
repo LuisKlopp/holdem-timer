@@ -6,6 +6,7 @@ export {
   useDeletePodiumRecords,
   usePodiumRankings,
   usePodiumRecords,
+  usePodiumRunnerUpRankings,
   usePodiumStats,
   useRecentPodiumRecords,
 } from "./usePodiumRecords";

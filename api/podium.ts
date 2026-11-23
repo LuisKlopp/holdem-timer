@@ -23,6 +23,12 @@ export type PodiumRanking = {
   lastWinAt: string;
 };
 
+export type PodiumRunnerUpRanking = {
+  name: string;
+  runnerUps: number;
+  lastRunnerUpAt: string;
+};
+
 export type PaginatedPodiumRecords = {
   items: PodiumRecord[];
   pagination: {
@@ -84,6 +90,21 @@ export const getRecentPodiumRecords = async (
   requireApiUrl();
   const response = await podiumApi.get<PodiumRecord[]>(
     "/podium-records/recent",
+    {
+      params: { limit, season },
+    }
+  );
+
+  return response.data;
+};
+
+export const getPodiumRunnerUpRankings = async (
+  season = CURRENT_SEASON_ID,
+  limit = 100
+) => {
+  requireApiUrl();
+  const response = await podiumApi.get<PodiumRunnerUpRanking[]>(
+    "/podium-records/runner-up-rankings",
     {
       params: { limit, season },
     }

@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useEffectEvent } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 import { getPodiumApiErrorMessage } from "@/api";
-import { usePodiumRankings } from "@/hooks";
+import { usePodiumRankings, usePodiumRunnerUpRankings } from "@/hooks";
 import { getPodiumRankRows } from "@/lib";
 
 type SeasonRankingModalProps = {
@@ -15,6 +15,8 @@ type SeasonRankingModalProps = {
     period: string;
   };
 };
+
+type RankingTab = "winner" | "runner-up";
 
 const NICKNAME_CROWN_CLASS_NAME =
   "pointer-events-none absolute -top-4 -right-2.5 h-6.5 w-auto rotate-[27deg]";
@@ -67,8 +69,37 @@ export default function SeasonRankingModal({
   onClose,
   season,
 }: SeasonRankingModalProps) {
+  const [activeTab, setActiveTab] = useState<RankingTab>("winner");
   const rankingsQuery = usePodiumRankings(season.id, 100);
-  const rankRows = getPodiumRankRows(rankingsQuery.data ?? []);
+  const runnerUpRankingsQuery = usePodiumRunnerUpRankings(
+    season.id,
+    100,
+    activeTab === "runner-up"
+  );
+  const isRunnerUpTab = activeTab === "runner-up";
+  const activeRankings = isRunnerUpTab
+    ? (runnerUpRankingsQuery.data ?? []).map((ranking) => ({
+        name: ranking.name,
+        wins: ranking.runnerUps,
+      }))
+    : (rankingsQuery.data ?? []);
+  const activeIsPending = isRunnerUpTab
+    ? runnerUpRankingsQuery.isPending
+    : rankingsQuery.isPending;
+  const activeIsError = isRunnerUpTab
+    ? runnerUpRankingsQuery.isError
+    : rankingsQuery.isError;
+  const activeError = isRunnerUpTab
+    ? runnerUpRankingsQuery.error
+    : rankingsQuery.error;
+  const refetchActiveRankings = isRunnerUpTab
+    ? runnerUpRankingsQuery.refetch
+    : rankingsQuery.refetch;
+  const rankRows = getPodiumRankRows(activeRankings);
+  const placementLabel = isRunnerUpTab ? "준우승" : "우승";
+  const rankingPeriod = isRunnerUpTab
+    ? "준우승 1등 - 신세계 상품권 2만원"
+    : season.period;
   const closeOnEscape = useEffectEvent(onClose);
 
   useEffect(() => {
@@ -134,26 +165,70 @@ export default function SeasonRankingModal({
             {season.label}
           </p>
           <p className="mt-1 whitespace-pre-line text-center text-sm leading-6 font-semibold text-amber-50 sm:text-base sm:leading-7">
-            {season.period}
+            {rankingPeriod}
           </p>
         </div>
 
-        <div className="mt-4 min-h-0 overflow-y-auto overscroll-contain">
-          {rankingsQuery.isPending ? (
+        <div
+          aria-label={`${season.label} 순위 종류`}
+          className="mt-4 grid grid-cols-2 gap-2 rounded-[1.25rem] border border-white/8 bg-black/20 p-1.5"
+          role="tablist"
+        >
+          <button
+            aria-controls="season-ranking-panel"
+            aria-selected={!isRunnerUpTab}
+            className={`btn-press-in min-h-11 rounded-2xl px-3 text-sm font-bold transition ${
+              !isRunnerUpTab
+                ? "bg-amber-200 text-slate-950 shadow-[0_8px_24px_rgba(251,191,36,0.16)]"
+                : "text-white/55 hover:bg-white/6 hover:text-white/85"
+            }`}
+            id="winner-ranking-tab"
+            onClick={() => setActiveTab("winner")}
+            role="tab"
+            type="button"
+          >
+            우승 순위
+          </button>
+          <button
+            aria-controls="season-ranking-panel"
+            aria-selected={isRunnerUpTab}
+            className={`btn-press-in min-h-11 rounded-2xl px-3 text-sm font-bold transition ${
+              isRunnerUpTab
+                ? "bg-sky-200 text-slate-950 shadow-[0_8px_24px_rgba(125,211,252,0.16)]"
+                : "text-white/55 hover:bg-white/6 hover:text-white/85"
+            }`}
+            id="runner-up-ranking-tab"
+            onClick={() => setActiveTab("runner-up")}
+            role="tab"
+            type="button"
+          >
+            준우승 순위
+          </button>
+        </div>
+
+        <div
+          aria-labelledby={
+            isRunnerUpTab ? "runner-up-ranking-tab" : "winner-ranking-tab"
+          }
+          className="mt-3 min-h-0 overflow-y-auto overscroll-contain"
+          id="season-ranking-panel"
+          role="tabpanel"
+        >
+          {activeIsPending ? (
             <p className="rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-5 text-center text-sm text-white/50">
-              우승자 명단을 불러오는 중입니다.
+              {placementLabel} 순위를 불러오는 중입니다.
             </p>
-          ) : rankingsQuery.isError ? (
+          ) : activeIsError ? (
             <div className="rounded-[1.25rem] border border-rose-300/18 bg-rose-300/8 px-4 py-5 text-center">
               <p className="text-sm leading-6 font-semibold text-rose-100">
                 {getPodiumApiErrorMessage(
-                  rankingsQuery.error,
-                  "순위를 불러오지 못했습니다."
+                  activeError,
+                  `${placementLabel} 순위를 불러오지 못했습니다.`
                 )}
               </p>
               <button
                 className="btn-press-in mt-3 rounded-full border border-rose-200/20 px-4 py-2 text-sm font-bold text-rose-100"
-                onClick={() => void rankingsQuery.refetch()}
+                onClick={() => void refetchActiveRankings()}
                 type="button"
               >
                 다시 시도
@@ -173,7 +248,9 @@ export default function SeasonRankingModal({
                   </span>
                   <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                     {winner.names.map((name) => {
-                      const crownSrc = getNicknameCrownSrc(winner.rank);
+                      const crownSrc = isRunnerUpTab
+                        ? null
+                        : getNicknameCrownSrc(winner.rank);
 
                       return (
                         <span
@@ -196,14 +273,14 @@ export default function SeasonRankingModal({
                     })}
                   </div>
                   <span className="shrink-0 rounded-full bg-amber-200/12 px-2.5 py-1.5 text-xs font-bold text-amber-100">
-                    {winner.wins}회 우승
+                    {winner.wins}회 {placementLabel}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
             <p className="rounded-[1.25rem] border border-white/8 bg-white/6 px-4 py-5 text-center text-sm text-white/50">
-              아직 누적된 우승 기록이 없습니다.
+              아직 누적된 {placementLabel} 기록이 없습니다.
             </p>
           )}
         </div>

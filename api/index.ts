@@ -26,11 +26,13 @@ export {
   getPodiumApiErrorMessage,
   getPodiumRankings,
   getPodiumRecords,
+  getPodiumRunnerUpRankings,
   getPodiumStats,
   getRecentPodiumRecords,
   type PaginatedPodiumRecords,
   type PodiumRanking,
   type PodiumRecord,
+  type PodiumRunnerUpRanking,
   type PodiumStats,
 } from "./podium";
 export {
